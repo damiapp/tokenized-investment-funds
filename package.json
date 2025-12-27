@@ -1,1 +1,33 @@
-{"name": "tokenized-investment-funds", "version": "1.0.0", "description": "A platform for tokenized investment funds using ERC-3643 standard on Ethereum and Polygon", "main": "index.js", "scripts": {"dev": "concurrently \"npm run server\" \"npm run client\"", "server": "cd backend && npm run dev", "client": "cd frontend && npm start", "compile": "cd contracts && npx hardhat compile", "test": "cd contracts && npx hardhat test", "deploy:local": "cd contracts && npx hardhat run scripts/deploy.js --network localhost", "deploy:polygon": "cd contracts && npx hardhat run scripts/deploy.js --network polygon", "migrate": "cd backend && npm run migrate", "seed": "cd backend && npm run seed"}, "keywords": ["blockchain", "ethereum", "polygon", "erc-3643", "investment-funds", "tokenization", "fintech", "react", "nodejs"], "author": "Master Thesis Project", "license": "MIT", "devDependencies": {"concurrently": "^8.2.2"}}
+{
+  "name": "tokenized-investment-funds",
+  "version": "1.0.0",
+  "description": "A platform for tokenized investment funds using ERC-3643 standard on Ethereum and Polygon",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "compile": "cd contracts && npx hardhat compile",
+    "test": "cd contracts && npx hardhat test",
+    "deploy:local": "cd contracts && npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:polygon": "cd contracts && npx hardhat run scripts/deploy.js --network polygon",
+    "migrate": "cd backend && npm run migrate",
+    "seed": "cd backend && npm run seed"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "polygon",
+    "erc-3643",
+    "investment-funds",
+    "tokenization",
+    "fintech",
+    "react",
+    "nodejs"
+  ],
+  "author": "Master Thesis Project",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
