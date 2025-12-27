@@ -60,6 +60,38 @@ Frontend will run on:
 
 - **Backend connectivity:** frontend calls `GET /health`
 - **Wallet connection:** connect MetaMask and display address + chain id
+- **Smart contracts:** KYCRegistry and FundToken contracts implemented with permissioned transfer logic
+
+## Recent Development (Dec 26, 2025)
+
+### Backend Implementation
+- **Express server setup** with security middleware (helmet, cors, rate limiting)
+- **Health check endpoint** (`GET /health`) returning `{ "ok": true }`
+- **Error handling** with proper HTTP status codes and JSON responses
+- **Environment configuration** support via `.env` files
+
+### Frontend Implementation  
+- **React + TypeScript** application with wallet connectivity
+- **MetaMask integration** using ethers.js
+- **Backend API integration** with health check functionality
+- **Modern dark theme UI** with responsive design
+- **Error handling** and loading states
+
+### Smart Contracts Development
+- **KYCRegistry contract**: On-chain identity verification system
+  - `isVerified(address)` function to check verification status
+  - `setVerified(address,bool)` admin function to manage verification
+  - Event emissions for verification changes
+- **FundToken contract**: Permissioned ERC-20 token with KYC enforcement
+  - KYC-restricted transfers (both sender and receiver must be verified)
+  - Minting functionality for fund managers
+  - Integration with KYCRegistry for compliance
+- **OpenZeppelin integration** for secure contract development
+
+### Development Infrastructure
+- **Hardhat development environment** configured for local testing
+- **Contract compilation** and deployment scripts
+- **Package.json scripts** for concurrent development across all components
 
 ## Next milestones
 
@@ -69,9 +101,10 @@ Frontend will run on:
   - Funds (`/funds`)
   - Investments (`/funds/:fundId/investments`)
 - Contracts:
-  - `KYCRegistry` (on-chain identity status)
-  - `FundToken` (permissioned token; ERC-3643-aligned)
-  - Local deployment scripts + tests
+  - Contract deployment scripts and testing
+  - Integration between backend and smart contracts
+  - FundFactory contract for fund creation
+  - InvestmentContract for managing contributions
 
 ## Notes
 
