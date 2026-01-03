@@ -7,6 +7,11 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:auth": "jest test/unit/auth.test.js",
+    "test:models": "jest test/unit/models.test.js",
+    "test:services": "jest test/unit/services.test.js",
     "migrate": "sequelize-cli db:migrate",
     "seed": "sequelize-cli db:seed:all"
   },
@@ -27,6 +32,7 @@
     "nodemon": "^2.0.20",
     "jest": "^29.4.3",
     "supertest": "^6.3.3",
-    "sequelize-cli": "^6.6.1"
+    "sequelize-cli": "^6.6.1",
+    "sqlite3": "^5.1.6"
   }
 }

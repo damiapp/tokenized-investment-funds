@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const { sequelize } = require("./models");
 
 const app = express();
 
@@ -25,9 +26,14 @@ app.use(
   })
 );
 
+// Routes
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+
 app.get("/health", (_req, res) => {
   res.status(200).json({ ok: true });
 });
+
 
 app.use((req, res) => {
   res.status(404).json({ error: { code: "NOT_FOUND", message: "Route not found" } });
@@ -39,6 +45,25 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = Number(process.env.PORT || 3001);
-app.listen(port, () => {
-  process.stdout.write(`Backend listening on http://localhost:${port}\n`);
-});
+
+// Database connection and server start
+const startServer = async () => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    console.log("Database connection established successfully.");
+
+    // Sync database models (create tables if they don't exist)
+    await sequelize.sync({ alter: true });
+    console.log("Database models synchronized.");
+
+    app.listen(port, () => {
+      process.stdout.write(`Backend listening on http://localhost:${port}\n`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

@@ -61,6 +61,7 @@ Frontend will run on:
 - **Backend connectivity:** frontend calls `GET /health`
 - **Wallet connection:** connect MetaMask and display address + chain id
 - **Smart contracts:** KYCRegistry and FundToken contracts implemented with permissioned transfer logic
+- **Authentication:** User registration, login, and JWT-based auth system
 
 ## Recent Development (Dec 26, 2025)
 
@@ -69,6 +70,10 @@ Frontend will run on:
 - **Health check endpoint** (`GET /health`) returning `{ "ok": true }`
 - **Error handling** with proper HTTP status codes and JSON responses
 - **Environment configuration** support via `.env` files
+- **Authentication system** with JWT tokens and bcrypt password hashing
+- **Database models** for User and KYC status using Sequelize
+- **Auth endpoints**: `/auth/register`, `/auth/login`, `/auth/me`
+- **Comprehensive test suite** with Jest and SQLite mock database
 
 ### Frontend Implementation  
 - **React + TypeScript** application with wallet connectivity
@@ -93,10 +98,60 @@ Frontend will run on:
 - **Contract compilation** and deployment scripts
 - **Package.json scripts** for concurrent development across all components
 
+## API Endpoints
+
+### Authentication
+- `POST /auth/register` - User registration (email, password, role, optional walletAddress)
+- `POST /auth/login` - User login (email, password)
+- `GET /auth/me` - Get current user info (requires JWT token)
+
+### Health
+- `GET /health` - Health check endpoint
+
+## Testing
+
+### Backend Tests
+The backend includes a comprehensive test suite using Jest and SQLite for mock database:
+
+- **Unit Tests**: Model validations, service functions
+- **Integration Tests**: Auth endpoints, database operations
+- **Test Coverage**: Password hashing, JWT tokens, user registration/login
+
+### Running Tests
+```bash
+cd backend
+
+# Install test dependencies
+npm install
+
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run specific test suites
+npm run test:auth      # Auth endpoint tests
+npm run test:models     # Database model tests
+npm run test:services   # Service function tests
+
+# Or use the test runner script
+node run-tests.js [all|watch|coverage|auth|models|services]
+```
+
+### Test Features
+- **SQLite in-memory database** for isolated testing
+- **Automatic database setup/teardown** between tests
+- **Mock data factories** for consistent test data
+- **Comprehensive assertions** for API responses
+- **Error case testing** for validation and edge cases
+
 ## Next milestones
 
 - Backend:
-  - Auth (`/auth/register`, `/auth/login`)
   - KYC mock flow (`/kyc/submit`, `/kyc/webhook`)
   - Funds (`/funds`)
   - Investments (`/funds/:fundId/investments`)
@@ -105,6 +160,10 @@ Frontend will run on:
   - Integration between backend and smart contracts
   - FundFactory contract for fund creation
   - InvestmentContract for managing contributions
+- Frontend:
+  - Authentication UI integration
+  - User registration and login forms
+  - Protected routes with JWT tokens
 
 ## Notes
 
