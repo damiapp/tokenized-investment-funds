@@ -109,15 +109,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
+    console.log("AuthContext: login called with:", credentials);
     dispatch({ type: "AUTH_START" });
     try {
+      console.log("AuthContext: calling apiClient.login...");
       const response = await apiClient.login(credentials);
+      console.log("AuthContext: apiClient.login success, response:", response);
       apiClient.setToken(response.data.token);
+      console.log("AuthContext: token set, dispatching AUTH_SUCCESS");
       dispatch({
         type: "AUTH_SUCCESS",
         payload: { user: response.data.user, token: response.data.token },
       });
+      console.log("AuthContext: AUTH_SUCCESS dispatched");
     } catch (error) {
+      console.error("AuthContext: login error:", error);
       dispatch({
         type: "AUTH_FAILURE",
         payload: error instanceof Error ? error.message : "Login failed",

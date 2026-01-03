@@ -69,7 +69,7 @@ const authController = {
       });
 
       // Create KYC status record
-      await KycStatus.create({
+      const kycStatus = await KycStatus.create({
         userId: user.id,
         status: "pending",
       });
@@ -77,12 +77,16 @@ const authController = {
       // Generate token
       const token = generateToken(user.id);
 
-      // Return user data without password hash
+      // Return user data with KYC status
       const userResponse = {
         id: user.id,
         email: user.email,
         role: user.role,
         walletAddress: user.walletAddress,
+        kyc: {
+          status: kycStatus.status,
+          updatedAt: kycStatus.updatedAt,
+        },
       };
 
       res.status(201).json({
@@ -141,12 +145,19 @@ const authController = {
       // Generate token
       const token = generateToken(user.id);
 
-      // Return user data without password hash
+      // Get KYC status
+      const kycStatus = await KycStatus.findOne({
+        where: { userId: user.id },
+        attributes: ["status", "updatedAt"],
+      });
+
+      // Return user data with KYC status
       const userResponse = {
         id: user.id,
         email: user.email,
         role: user.role,
         walletAddress: user.walletAddress,
+        kyc: kycStatus || { status: "pending", updatedAt: new Date() },
       };
 
       res.status(200).json({

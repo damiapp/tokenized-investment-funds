@@ -83,10 +83,18 @@ class ApiClient {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    return this.request<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
+    console.log("API Client: login called with:", credentials);
+    try {
+      const response = await this.request<AuthResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      });
+      console.log("API Client: login success, response:", response);
+      return response;
+    } catch (error) {
+      console.error("API Client: login error:", error);
+      throw error;
+    }
   }
 
   async getCurrentUser(): Promise<{ data: User }> {

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 interface LoginFormProps {
@@ -8,12 +9,22 @@ interface LoginFormProps {
 export function LoginForm({ onToggleMode }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Login form submitted with:", { email, password: "***" });
     clearError();
-    await login({ email, password });
+    try {
+      console.log("Calling login function...");
+      await login({ email, password });
+      console.log("Login successful!");
+      // Navigate to profile after successful login
+      navigate("/profile");
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   return (
@@ -120,6 +131,25 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
         >
           Register
         </button>
+        
+        {isAuthenticated && (
+          <div style={{ marginTop: 16 }}>
+            <button
+              type="button"
+              onClick={() => navigate("/profile")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#238636",
+                fontSize: 14,
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Go to Profile →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

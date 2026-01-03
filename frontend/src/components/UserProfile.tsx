@@ -1,8 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export function UserProfile() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) {
     return null;
@@ -29,6 +31,9 @@ export function UserProfile() {
         return "⏳ Pending";
     }
   };
+
+  // Ensure KYC data exists
+  const kycData = user.kyc || { status: "pending", updatedAt: new Date().toISOString() };
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
@@ -103,16 +108,16 @@ export function UserProfile() {
                 display: "flex", 
                 alignItems: "center", 
                 gap: 8,
-                color: getKycStatusColor(user.kyc.status),
+                color: getKycStatusColor(kycData.status),
                 fontSize: 16,
                 fontWeight: 500
               }}>
-                {getKycStatusText(user.kyc.status)}
+                {getKycStatusText(kycData.status)}
               </div>
               <div style={{ color: "#8b949e", fontSize: 12, marginTop: 8 }}>
-                Last updated: {new Date(user.kyc.updatedAt).toLocaleDateString()}
+                Last updated: {new Date(kycData.updatedAt).toLocaleDateString()}
               </div>
-              {user.kyc.status === "pending" && (
+              {kycData.status === "pending" && (
                 <div style={{ color: "#8b949e", fontSize: 14, marginTop: 8 }}>
                   Your KYC verification is in progress. This typically takes 1-2 business days.
                 </div>
@@ -123,7 +128,10 @@ export function UserProfile() {
 
         <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
           <button
-            onClick={logout}
+            onClick={() => {
+              logout();
+              navigate("/auth");
+            }}
             style={{
               padding: "12px 24px",
               backgroundColor: "#f85149",
