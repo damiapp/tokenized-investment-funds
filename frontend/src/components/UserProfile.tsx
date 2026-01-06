@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { KYCForm } from "./KYCForm";
+import { KYCStatus } from "./KYCStatus";
 
 export function UserProfile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showKYCForm, setShowKYCForm] = useState(false);
 
   if (!user) {
     return null;
@@ -35,6 +38,14 @@ export function UserProfile() {
   // Ensure KYC data exists
   const kycData = user.kyc || { status: "pending", updatedAt: new Date().toISOString() };
 
+  const handleKYCSubmit = () => {
+    setShowKYCForm(false);
+  };
+
+  if (showKYCForm) {
+    return <KYCForm onKYCSubmitted={handleKYCSubmit} />;
+  }
+
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
       <div style={{ 
@@ -61,68 +72,41 @@ export function UserProfile() {
               <div style={{ marginBottom: 12 }}>
                 <span style={{ color: "#8b949e", fontSize: 14 }}>Role:</span>
                 <div style={{ color: "#e6edf7", fontSize: 16, marginTop: 4 }}>
-                  {user.role === "GP" ? "General Partner (Fund Manager)" : "Limited Partner (Investor)"}
+                  {user.role === "LP" ? "Limited Partner (Investor)" : "General Partner (Fund Manager)"}
                 </div>
               </div>
               <div>
-                <span style={{ color: "#8b949e", fontSize: 14 }}>User ID:</span>
-                <div style={{ color: "#8b949e", fontSize: 12, marginTop: 4, fontFamily: "monospace" }}>
-                  {user.id}
+                <span style={{ color: "#8b949e", fontSize: 14 }}>Wallet Address:</span>
+                <div style={{ color: "#e6edf7", fontSize: 16, marginTop: 4 }}>
+                  {user.walletAddress || "Not connected"}
                 </div>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 style={{ color: "#8b949e", fontSize: 14, marginBottom: 8, textTransform: "uppercase" }}>
-              Wallet Information
-            </h3>
-            <div style={{ backgroundColor: "#21262d", padding: 16, borderRadius: 8 }}>
-              {user.walletAddress ? (
-                <div>
-                  <span style={{ color: "#8b949e", fontSize: 14 }}>Connected Wallet:</span>
-                  <div style={{ 
-                    color: "#e6edf7", 
-                    fontSize: 14, 
-                    marginTop: 4, 
-                    fontFamily: "monospace",
-                    wordBreak: "break-all"
-                  }}>
-                    {user.walletAddress}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ color: "#8b949e", fontSize: 14 }}>
-                  No wallet connected
-                </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ color: "#e6edf7", fontSize: 20 }}>
+                KYC Status
+              </h2>
+              {(kycData.status === "pending" || kycData.status === "rejected") && (
+                <button
+                  onClick={() => setShowKYCForm(true)}
+                  style={{
+                    backgroundColor: "#238636",
+                    border: "none",
+                    borderRadius: 6,
+                    color: "#ffffff",
+                    padding: "8px 16px",
+                    cursor: "pointer",
+                    fontSize: 14,
+                  }}
+                >
+                  {kycData.status === "pending" ? "Start KYC" : "Resubmit KYC"}
+                </button>
               )}
             </div>
-          </div>
-
-          <div>
-            <h3 style={{ color: "#8b949e", fontSize: 14, marginBottom: 8, textTransform: "uppercase" }}>
-              KYC Status
-            </h3>
-            <div style={{ backgroundColor: "#21262d", padding: 16, borderRadius: 8 }}>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 8,
-                color: getKycStatusColor(kycData.status),
-                fontSize: 16,
-                fontWeight: 500
-              }}>
-                {getKycStatusText(kycData.status)}
-              </div>
-              <div style={{ color: "#8b949e", fontSize: 12, marginTop: 8 }}>
-                Last updated: {new Date(kycData.updatedAt).toLocaleDateString()}
-              </div>
-              {kycData.status === "pending" && (
-                <div style={{ color: "#8b949e", fontSize: 14, marginTop: 8 }}>
-                  Your KYC verification is in progress. This typically takes 1-2 business days.
-                </div>
-              )}
-            </div>
+            <KYCStatus />
           </div>
         </div>
 

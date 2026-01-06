@@ -51,23 +51,56 @@ backend/src/
 
 ## Quick Start
 
-### Backend
+### 1. Setup PostgreSQL Database
+```bash
+# Create database
+createdb tokenized_funds
+
+# Or using psql:
+psql -U postgres
+CREATE DATABASE tokenized_funds;
+\q
+```
+
+### 2. Backend Setup
 ```bash
 cd backend
 npm install
-# Create PostgreSQL database: tokenized_funds
-cp .env.example .env  # Update DATABASE_URL password
+cp .env.example .env  # Update DATABASE_URL with your PostgreSQL password
 npm run dev
-# → http://localhost:3001
+# → Backend running on http://localhost:3001
 ```
 
-### Frontend  
+**Backend `.env` configuration:**
+```env
+NODE_ENV=development
+DATABASE_URL=postgres://postgres:YOUR_PASSWORD@localhost:5432/tokenized_funds
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+PORT=3001
+```
+
+### 3. Frontend Setup
 ```bash
 cd frontend
 npm install
-cp .env.example .env  # Optional: update API_BASE_URL
 npm start
-# → http://localhost:3000
+# → Frontend running on http://localhost:3000
+```
+
+### 4. Running Both Servers
+**Option 1: Separate terminals**
+```bash
+# Terminal 1 - Backend
+cd backend && npm run dev
+
+# Terminal 2 - Frontend
+cd frontend && npm start
+```
+
+**Option 2: From root (requires concurrently)**
+```bash
+npm install  # Install concurrently
+npm run dev  # Runs both backend and frontend
 ```
 
 ## 🚀 Current Features

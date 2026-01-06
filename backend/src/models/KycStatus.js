@@ -17,12 +17,29 @@ const KycStatus = sequelize.define("KycStatus", {
     },
   },
   status: {
-    type: DataTypes.ENUM("pending", "approved", "rejected"),
+    type: DataTypes.ENUM("pending", "submitted", "approved", "rejected"),
     allowNull: false,
     defaultValue: "pending",
   },
   providerRef: {
     type: DataTypes.STRING,
+    allowNull: true,
+  },
+  documents: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: null,
+  },
+  rejectionReason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  submittedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  reviewedAt: {
+    type: DataTypes.DATE,
     allowNull: true,
   },
   updatedAt: {

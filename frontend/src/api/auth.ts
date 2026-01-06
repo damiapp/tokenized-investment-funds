@@ -104,6 +104,11 @@ class ApiClient {
   async healthCheck(): Promise<{ ok: boolean }> {
     return this.request<{ ok: boolean }>("/health");
   }
+
+  // Public method for generic requests
+  async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, options);
+  }
 }
 
 export const apiClient = new ApiClient();
