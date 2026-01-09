@@ -1,5 +1,6 @@
 const { KycStatus } = require("../models");
 const path = require("path");
+const fs = require("fs");
 
 const kycController = {
   async submit(req, res) {
@@ -27,16 +28,50 @@ const kycController = {
         });
       }
 
-      // Process uploaded files
-      const documents = req.files.map(file => ({
-        id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: req.body[`type_${file.fieldname}`] || file.fieldname,
-        name: file.originalname,
-        path: file.path,
-        filename: file.filename,
+      const rawDocumentTypes = req.body.documentTypes;
+      const documentTypes = Array.isArray(rawDocumentTypes)
+        ? rawDocumentTypes
+        : rawDocumentTypes
+          ? [rawDocumentTypes]
+          : [];
+
+      if (documentTypes.length !== req.files.length) {
+        return res.status(400).json({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "documentTypes must be provided once per uploaded document",
+          },
+        });
+      }
+
+      const allowedTypes = new Set([
+        "passport",
+        "idCard",
+        "proofOfAddress",
+        "bankStatement",
+      ]);
+
+      for (const t of documentTypes) {
+        if (!allowedTypes.has(t)) {
+          return res.status(400).json({
+            error: {
+              code: "VALIDATION_ERROR",
+              message: `Invalid document type: ${t}`,
+            },
+          });
+        }
+      }
+
+      // Process uploaded files into a stable, persisted schema
+      const uploadedAt = new Date().toISOString();
+      const documents = req.files.map((file, idx) => ({
+        id: `doc_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        type: documentTypes[idx],
+        originalName: file.originalname,
+        storedName: file.filename,
+        mimeType: file.mimetype,
         size: file.size,
-        mimetype: file.mimetype,
-        uploadedAt: new Date().toISOString(),
+        uploadedAt,
       }));
 
       // Update KYC with submitted documents
@@ -88,11 +123,49 @@ const kycController = {
         });
       }
 
+      const documents = Array.isArray(kycStatus.documents)
+        ? kycStatus.documents
+        : [];
+
+      const normalizedDocuments = documents
+        .filter((doc) => doc && typeof doc === "object")
+        .map((doc) => {
+          const storedName =
+            typeof doc.storedName === "string"
+              ? doc.storedName
+              : (typeof doc.filename === "string" ? doc.filename : undefined);
+
+          const legacyStableId = storedName
+            ? `doc_${storedName.replace(/[^a-zA-Z0-9_-]/g, "_")}`
+            : undefined;
+
+          const finalId =
+            typeof doc.id === "string" ? doc.id : (legacyStableId || `doc_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
+
+          return {
+            id: finalId,
+            type: typeof doc.type === "string" ? doc.type : "passport",
+            originalName:
+              typeof doc.originalName === "string"
+                ? doc.originalName
+                : (typeof doc.name === "string" ? doc.name : "document"),
+            storedName,
+            mimeType:
+              typeof doc.mimeType === "string"
+                ? doc.mimeType
+                : (typeof doc.mimetype === "string" ? doc.mimetype : "application/octet-stream"),
+            size: typeof doc.size === "number" ? doc.size : 0,
+            uploadedAt:
+              typeof doc.uploadedAt === "string" ? doc.uploadedAt : new Date().toISOString(),
+            downloadUrl: storedName ? `/kyc/documents/${finalId}/download` : undefined,
+          };
+        });
+
       res.status(200).json({
         data: {
           status: kycStatus.status,
           providerRef: kycStatus.providerRef,
-          documents: kycStatus.documents,
+          documents: normalizedDocuments,
           submittedAt: kycStatus.submittedAt,
           reviewedAt: kycStatus.reviewedAt,
           rejectionReason: kycStatus.rejectionReason,
@@ -105,6 +178,87 @@ const kycController = {
         error: {
           code: "INTERNAL",
           message: "Failed to get KYC status",
+        },
+      });
+    }
+  },
+
+  async downloadDocument(req, res) {
+    try {
+      const userId = req.user.id;
+      const { documentId } = req.params;
+
+      const kycStatus = await KycStatus.findOne({ where: { userId } });
+      if (!kycStatus) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "KYC status not found",
+          },
+        });
+      }
+
+      const documents = Array.isArray(kycStatus.documents)
+        ? kycStatus.documents
+        : [];
+
+      const doc = documents.find((d) => {
+        if (!d || typeof d !== "object") return false;
+        if (d.id === documentId) return true;
+        const storedNameCandidate =
+          typeof d.storedName === "string"
+            ? d.storedName
+            : (typeof d.filename === "string" ? d.filename : undefined);
+        if (!storedNameCandidate) return false;
+        const legacyStableId = `doc_${storedNameCandidate.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+        return legacyStableId === documentId;
+      });
+      if (!doc) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Document not found",
+          },
+        });
+      }
+
+      const storedName =
+        typeof doc.storedName === "string"
+          ? doc.storedName
+          : (typeof doc.filename === "string" ? doc.filename : undefined);
+      if (!storedName || typeof storedName !== "string") {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Document file not found",
+          },
+        });
+      }
+
+      const uploadDir = path.join(__dirname, "../../uploads/kyc");
+      const filePath = path.join(uploadDir, storedName);
+
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Document file missing on server",
+          },
+        });
+      }
+
+      const downloadName =
+        typeof doc.originalName === "string"
+          ? doc.originalName
+          : (typeof doc.name === "string" ? doc.name : storedName);
+
+      return res.download(filePath, downloadName);
+    } catch (error) {
+      console.error("KYC document download error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to download document",
         },
       });
     }

@@ -14,6 +14,9 @@ router.post("/submit", upload.array("documents", 10), kycController.submit);
 // Get KYC status
 router.get("/status", kycController.getStatus);
 
+// Download a previously uploaded KYC document
+router.get("/documents/:documentId/download", kycController.downloadDocument);
+
 // Webhook for KYC provider updates
 router.post("/webhook", kycController.webhook);
 

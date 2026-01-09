@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { kycApi, type KYCStatus as KYCStatusType } from "../api/kyc";
+import { apiClient, API_BASE_URL } from "../api/auth";
 import { useAuth } from "../contexts/AuthContext";
 
 export function KYCStatus() {
@@ -34,6 +35,30 @@ export function KYCStatus() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDownload = async (downloadUrl: string, filename: string) => {
+    const token = apiClient.getToken();
+    const response = await fetch(`${API_BASE_URL}${downloadUrl}`, {
+      method: "GET",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download document (HTTP ${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   const getStatusColor = (status: string) => {
@@ -235,14 +260,39 @@ export function KYCStatus() {
                 }}>
                   <div>
                     <div style={{ color: "#e6edf7", fontSize: 14, marginBottom: 4 }}>
-                      {doc.name}
+                      {doc.originalName}
                     </div>
                     <div style={{ color: "#8b949e", fontSize: 12 }}>
-                      {typeof doc.type === 'string' ? doc.type.replace(/([A-Z])/g, ' $1').toUpperCase() : 'DOCUMENT'}
+                      {doc.type.replace(/([A-Z])/g, " $1").toUpperCase()}
                     </div>
                   </div>
-                  <div style={{ color: "#8b949e", fontSize: 12 }}>
-                    {new Date(doc.uploadedAt).toLocaleDateString()}
+                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    <div style={{ color: "#8b949e", fontSize: 12 }}>
+                      {new Date(doc.uploadedAt).toLocaleDateString()}
+                    </div>
+                    {doc.downloadUrl && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await handleDownload(doc.downloadUrl!, doc.originalName);
+                          } catch (e) {
+                            setError(e instanceof Error ? e.message : "Failed to download document");
+                          }
+                        }}
+                        style={{
+                          backgroundColor: "#238636",
+                          border: "none",
+                          borderRadius: 6,
+                          color: "#ffffff",
+                          padding: "6px 10px",
+                          cursor: "pointer",
+                          fontSize: 12,
+                        }}
+                      >
+                        Download
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

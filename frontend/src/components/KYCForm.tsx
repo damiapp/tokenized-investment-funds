@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { kycApi, type KYCDocument } from "../api/kyc";
+import { kycApi, type KYCUploadDocument, type KYCDocumentType } from "../api/kyc";
 import { useAuth } from "../contexts/AuthContext";
 
 interface KYCFormProps {
@@ -8,7 +8,7 @@ interface KYCFormProps {
 
 export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
   const { user } = useAuth();
-  const [documents, setDocuments] = useState<KYCDocument[]>([]);
+  const [documents, setDocuments] = useState<KYCUploadDocument[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRefs = {
@@ -18,13 +18,13 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
     bankStatement: useRef<HTMLInputElement>(null),
   };
 
-  const handleFileUpload = (type: KYCDocument["type"], file: File) => {
-    const document: KYCDocument = {
+  const handleFileUpload = (type: KYCDocumentType, file: File) => {
+    const document: KYCUploadDocument = {
       id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
       name: file.name,
-      url: URL.createObjectURL(file),
-      file: file,
+      previewUrl: URL.createObjectURL(file),
+      file,
       uploadedAt: new Date().toISOString(),
     };
 
@@ -35,7 +35,7 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
     setError(null);
   };
 
-  const handleFileChange = (type: KYCDocument["type"], event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (type: KYCDocumentType, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file size (max 5MB)
@@ -55,7 +55,7 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
     }
   };
 
-  const removeDocument = (type: KYCDocument["type"]) => {
+  const removeDocument = (type: KYCDocumentType) => {
     setDocuments(prev => prev.filter(doc => doc.type !== type));
   };
 
@@ -79,7 +79,7 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
     }
   };
 
-  const documentTypes: { type: KYCDocument["type"]; label: string; description: string }[] = [
+  const documentTypes: { type: KYCDocumentType; label: string; description: string }[] = [
     {
       type: "passport",
       label: "Passport",
