@@ -6,12 +6,17 @@ import { AuthPage } from "./components/AuthPage";
 import { UserProfile } from "./components/UserProfile";
 import { FundList } from "./components/FundList";
 import { CreateFundForm } from "./components/CreateFundForm";
+import { FundDetail } from "./components/FundDetail";
+import { MyFunds } from "./components/MyFunds";
+import { MyInvestments } from "./components/MyInvestments";
+import { Navbar } from "./components/Navbar";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div style={{ minHeight: "100vh", backgroundColor: "#0d1117" }}>
+          <Navbar />
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route
@@ -35,6 +40,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateFundForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/funds/:id"
+              element={
+                <ProtectedRoute>
+                  <FundDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-funds"
+              element={
+                <ProtectedRoute>
+                  <MyFunds />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-investments"
+              element={
+                <ProtectedRoute>
+                  <MyInvestments />
                 </ProtectedRoute>
               }
             />

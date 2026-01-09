@@ -149,6 +149,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
               required
               style={{
                 width: "100%",
+                boxSizing: "border-box",
                 backgroundColor: "#21262d",
                 border: "1px solid #30363d",
                 borderRadius: 6,
@@ -172,6 +173,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
               rows={4}
               style={{
                 width: "100%",
+                boxSizing: "border-box",
                 backgroundColor: "#21262d",
                 border: "1px solid #30363d",
                 borderRadius: 6,
@@ -199,6 +201,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
                 step="0.01"
                 style={{
                   width: "100%",
+                  boxSizing: "border-box",
                   backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: 6,
@@ -224,6 +227,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
                 step="0.01"
                 style={{
                   width: "100%",
+                  boxSizing: "border-box",
                   backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: 6,
@@ -252,6 +256,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
                 step="0.01"
                 style={{
                   width: "100%",
+                  boxSizing: "border-box",
                   backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: 6,
@@ -278,6 +283,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
                 step="0.01"
                 style={{
                   width: "100%",
+                  boxSizing: "border-box",
                   backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: 6,
@@ -302,6 +308,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
               rows={3}
               style={{
                 width: "100%",
+                boxSizing: "border-box",
                 backgroundColor: "#21262d",
                 border: "1px solid #30363d",
                 borderRadius: 6,
@@ -326,6 +333,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
                 required
                 style={{
                   width: "100%",
+                  boxSizing: "border-box",
                   backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: 6,
@@ -351,6 +359,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
                 onChange={handleChange}
                 style={{
                   width: "100%",
+                  boxSizing: "border-box",
                   backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: 6,
@@ -374,6 +383,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
               maxLength={10}
               style={{
                 width: "100%",
+                boxSizing: "border-box",
                 backgroundColor: "#21262d",
                 border: "1px solid #30363d",
                 borderRadius: 6,

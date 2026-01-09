@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { fundsApi, type Fund } from "../api/funds";
 import { useAuth } from "../contexts/AuthContext";
 
 export function FundList() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [funds, setFunds] = useState<Fund[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -154,6 +156,7 @@ export function FundList() {
                 cursor: "pointer",
                 transition: "border-color 0.2s",
               }}
+              onClick={() => navigate(`/funds/${fund.id}`)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "#58a6ff";
               }}
