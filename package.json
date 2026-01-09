@@ -9,10 +9,13 @@
     "client": "cd frontend && npm start",
     "compile": "cd contracts && npx hardhat compile",
     "test": "cd contracts && npx hardhat test",
+    "test:backend": "cd backend && npm test",
     "deploy:local": "cd contracts && npx hardhat run scripts/deploy.js --network localhost",
     "deploy:polygon": "cd contracts && npx hardhat run scripts/deploy.js --network polygon",
     "migrate": "cd backend && npm run migrate",
-    "seed": "cd backend && npm run seed"
+    "seed": "cd backend && npm run seed",
+    "seed:demo": "cd backend && npm run seed:demo",
+    "setup:demo": "npm run seed:demo && echo Demo setup complete!"
   },
   "keywords": [
     "blockchain",
