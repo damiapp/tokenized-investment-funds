@@ -10,13 +10,15 @@ import { FundDetail } from "./components/FundDetail";
 import { MyFunds } from "./components/MyFunds";
 import { MyInvestments } from "./components/MyInvestments";
 import { Navbar } from "./components/Navbar";
+import { WalletProvider } from "./contexts/WalletContext";
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div style={{ minHeight: "100vh", backgroundColor: "#0d1117" }}>
-          <Navbar />
+      <WalletProvider>
+        <Router>
+          <div style={{ minHeight: "100vh", backgroundColor: "#0d1117" }}>
+            <Navbar />
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route
@@ -70,8 +72,9 @@ function App() {
             <Route path="/" element={<Navigate to="/profile" replace />} />
             <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
-        </div>
-      </Router>
+          </div>
+        </Router>
+      </WalletProvider>
     </AuthProvider>
   );
 }

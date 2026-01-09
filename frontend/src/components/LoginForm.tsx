@@ -45,6 +45,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
             required
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: "1px solid #30363d",
@@ -68,6 +69,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
             minLength={8}
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: "1px solid #30363d",
@@ -98,6 +100,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
           type="submit"
           disabled={isLoading}
           style={{
+            width: "100%",
             padding: 12,
             backgroundColor: isLoading ? "#238636" : "#238636",
             border: "1px solid #238636",

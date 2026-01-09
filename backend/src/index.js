@@ -31,11 +31,13 @@ const authRoutes = require("./routes/auth");
 const kycRoutes = require("./routes/kyc");
 const fundRoutes = require("./routes/funds");
 const investmentRoutes = require("./routes/investments");
+const contractRoutes = require("./routes/contracts");
 
 app.use("/auth", authRoutes);
 app.use("/kyc", kycRoutes);
 app.use("/funds", fundRoutes);
 app.use("/investments", investmentRoutes);
+app.use("/contracts", contractRoutes);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ ok: true });
@@ -53,6 +55,9 @@ app.use((err, _req, res, _next) => {
 
 const port = Number(process.env.PORT || 3001);
 
+// Contract service
+const contractService = require("./services/contractService");
+
 // Database connection and server start
 const startServer = async () => {
   try {
@@ -63,6 +68,11 @@ const startServer = async () => {
     // Sync database models (create tables if they don't exist)
     await sequelize.sync({ alter: true });
     console.log("Database models synchronized.");
+
+    // Initialize contract service (non-blocking)
+    contractService.initialize().catch((err) => {
+      console.warn("Contract service initialization failed:", err.message);
+    });
 
     app.listen(port, () => {
       process.stdout.write(`Backend listening on http://localhost:${port}\n`);

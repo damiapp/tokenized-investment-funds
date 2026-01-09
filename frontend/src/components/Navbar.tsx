@@ -1,13 +1,17 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useWallet } from "../contexts/WalletContext";
+import { WalletConnect } from "./WalletConnect";
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { disconnect } = useWallet();
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    disconnect();
     logout();
     navigate("/auth");
   };
@@ -81,8 +85,10 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* User Info & Logout */}
+      {/* Wallet & User Info */}
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <WalletConnect />
+        <div style={{ width: 1, height: 24, backgroundColor: "#30363d" }} />
         <Link
           to="/profile"
           style={{

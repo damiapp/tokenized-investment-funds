@@ -55,6 +55,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             required
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: "1px solid #30363d",
@@ -78,6 +79,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             minLength={8}
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: "1px solid #30363d",
@@ -101,6 +103,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             minLength={8}
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: password === confirmPassword ? "1px solid #30363d" : "1px solid #f85149",
@@ -126,6 +129,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             onChange={(e) => setRole(e.target.value as "GP" | "LP")}
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: "1px solid #30363d",
@@ -150,6 +154,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             placeholder="0x1234567890123456789012345678901234567890"
             style={{
               width: "100%",
+              boxSizing: "border-box",
               padding: 12,
               backgroundColor: "#21262d",
               border: "1px solid #30363d",
@@ -182,6 +187,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
           type="submit"
           disabled={!isFormValid || isLoading}
           style={{
+            width: "100%",
             padding: 12,
             backgroundColor: !isFormValid || isLoading ? "#484f58" : "#238636",
             border: "1px solid #484f58",
