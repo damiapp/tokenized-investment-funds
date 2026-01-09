@@ -1,16 +1,16 @@
 const { KycStatus } = require("../models");
+const path = require("path");
 
 const kycController = {
   async submit(req, res) {
     try {
       const userId = req.user.id;
-      const { documents } = req.body;
-
-      if (!documents || !Array.isArray(documents)) {
+      
+      if (!req.files || req.files.length === 0) {
         return res.status(400).json({
           error: {
             code: "VALIDATION_ERROR",
-            message: "Documents array is required",
+            message: "At least one document file is required",
           },
         });
       }
@@ -26,6 +26,18 @@ const kycController = {
           },
         });
       }
+
+      // Process uploaded files
+      const documents = req.files.map(file => ({
+        id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: req.body[`type_${file.fieldname}`] || file.fieldname,
+        name: file.originalname,
+        path: file.path,
+        filename: file.filename,
+        size: file.size,
+        mimetype: file.mimetype,
+        uploadedAt: new Date().toISOString(),
+      }));
 
       // Update KYC with submitted documents
       const providerRef = `KYC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -48,6 +60,7 @@ const kycController = {
           message: "KYC documents submitted successfully",
           providerRef,
           status: "submitted",
+          documentsCount: documents.length,
         },
       });
     } catch (error) {

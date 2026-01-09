@@ -24,6 +24,7 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
       type,
       name: file.name,
       url: URL.createObjectURL(file),
+      file: file,
       uploadedAt: new Date().toISOString(),
     };
 

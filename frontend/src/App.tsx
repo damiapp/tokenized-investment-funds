@@ -4,6 +4,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthPage } from "./components/AuthPage";
 import { UserProfile } from "./components/UserProfile";
+import { FundList } from "./components/FundList";
+import { CreateFundForm } from "./components/CreateFundForm";
 
 function App() {
   return (
@@ -17,6 +19,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <UserProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/funds"
+              element={
+                <ProtectedRoute>
+                  <FundList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/funds/create"
+              element={
+                <ProtectedRoute>
+                  <CreateFundForm />
                 </ProtectedRoute>
               }
             />

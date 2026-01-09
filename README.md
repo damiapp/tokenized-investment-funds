@@ -111,8 +111,22 @@ npm run dev  # Runs both backend and frontend
 - User profile dashboard with KYC status
 - Session persistence across page refreshes
 
+### ✅ **KYC Verification**
+- File upload system with multer (JPEG, PNG, PDF)
+- Document storage and validation
+- Real-time status polling (pending → submitted → approved/rejected)
+- Mock approval workflow (30s delay for demo)
+
+### ✅ **Fund Management**
+- Fund creation form (GP only)
+- Fund listing with filters (status, risk level)
+- Complete CRUD operations
+- Investment tracking and portfolio management
+
 ### ✅ **Backend**
-- PostgreSQL + Sequelize (users, KYC status)
+- PostgreSQL + Sequelize (Users, KYC, Funds, Investments)
+- File upload middleware with security
+- Role-based access control (GP/LP)
 - JWT middleware & security headers
 - Comprehensive API testing (31/38 tests)
 
@@ -120,6 +134,8 @@ npm run dev  # Runs both backend and frontend
 - React + TypeScript with full type safety
 - Context API for auth state management
 - Dark theme UI with responsive design
+- Fund listing and creation interfaces
+- Real-time KYC status updates
 
 ### ✅ **Smart Contracts** (Ready)
 - KYCRegistry & FundToken contracts implemented
@@ -157,6 +173,25 @@ npm run dev  # Runs both backend and frontend
 - `GET /auth/me` - Get current user (JWT required)
 - `GET /health` - Health check
 
+### 📋 **KYC**
+- `POST /kyc/submit` - Submit KYC documents (multipart/form-data)
+- `GET /kyc/status` - Get KYC verification status
+- `POST /kyc/webhook` - KYC provider webhook (internal)
+
+### 💼 **Funds**
+- `POST /funds` - Create new fund (GP only)
+- `GET /funds` - List all funds (with filters)
+- `GET /funds/my-funds` - Get user's funds (GP: created, LP: invested)
+- `GET /funds/:id` - Get fund details
+- `PUT /funds/:id` - Update fund (GP only)
+- `DELETE /funds/:id` - Delete draft fund (GP only)
+
+### 💰 **Investments**
+- `POST /investments` - Create investment (KYC required)
+- `GET /investments` - List investments
+- `GET /investments/:id` - Get investment details
+- `PUT /investments/:id/status` - Update investment status (GP only)
+
 **Response Format:**
 ```json
 {
@@ -181,25 +216,33 @@ npm run test:auth           # Auth tests only
 
 ## 🎯 **Next Steps**
 
-### 🚀 **Priority 1: KYC Flow**
-- Document upload interface
-- KYC status tracking
-- Mock provider integration
+### 🔗 **Priority 1: Smart Contract Integration**
+- Deploy KYCRegistry and FundToken to local Hardhat network
+- Create blockchain service layer in backend
+- Integrate ethers.js for on-chain KYC verification
+- Implement token minting/transfer for investments
+- Add MetaMask wallet connection flow
 
-### 💰 **Priority 2: Funds Management**
-- Fund creation/listing
-- GP/LP permissions
-- Investment tracking
+### 💰 **Priority 2: Investment Flow**
+- Build investment submission UI with amount input
+- Connect investment creation to fund details page
+- Add portfolio dashboard for LPs (holdings, returns)
+- Create transaction history view
+- Implement investment confirmation flow
 
-### 🔗 **Priority 3: Smart Contracts**
-- Contract deployment
-- On-chain operations
-- Token issuance
+### 🎨 **Priority 3: Enhanced UI/UX**
+- Add navigation menu/header component
+- Create fund detail page with investment interface
+- Build GP dashboard for fund management
+- Add charts and visualizations for fund performance
+- Mobile responsive improvements
 
-### 🎨 **Priority 4: Enhanced UI**
-- Portfolio dashboard
-- Real-time updates
-- Mobile optimization
+### 🧪 **Priority 4: Testing & Production**
+- Write tests for new fund/investment features
+- Add integration tests for file uploads
+- Improve error handling and validation
+- Add deployment configuration
+- Security audit and optimization
 
 ## Notes
 

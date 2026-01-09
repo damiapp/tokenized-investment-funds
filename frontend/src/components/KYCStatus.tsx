@@ -1,18 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { kycApi, type KYCStatus } from "../api/kyc";
+import { kycApi, type KYCStatus as KYCStatusType } from "../api/kyc";
 import { useAuth } from "../contexts/AuthContext";
 
 export function KYCStatus() {
   const { user } = useAuth();
-  const [kycData, setKycData] = useState<KYCStatus | null>(null);
+  const [kycData, setKycData] = useState<KYCStatusType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchKYCStatus();
+      
+      // Poll for status updates every 10 seconds if status is submitted
+      const interval = setInterval(() => {
+        if (kycData?.status === "submitted") {
+          fetchKYCStatus();
+        }
+      }, 10000);
+
+      return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user, kycData?.status]);
 
   const fetchKYCStatus = async () => {
     setIsLoading(true);
@@ -229,7 +238,7 @@ export function KYCStatus() {
                       {doc.name}
                     </div>
                     <div style={{ color: "#8b949e", fontSize: 12 }}>
-                      {doc.type.replace(/([A-Z])/g, ' $1').toUpperCase()}
+                      {typeof doc.type === 'string' ? doc.type.replace(/([A-Z])/g, ' $1').toUpperCase() : 'DOCUMENT'}
                     </div>
                   </div>
                   <div style={{ color: "#8b949e", fontSize: 12 }}>
