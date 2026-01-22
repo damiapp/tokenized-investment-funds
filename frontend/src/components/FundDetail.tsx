@@ -351,38 +351,118 @@ export function FundDetail() {
                       border: "1px solid #30363d",
                       borderRadius: 6,
                       padding: 12,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
                     }}
                   >
-                    <div>
-                      <div style={{ color: "#e6edf7", fontSize: 14 }}>
-                        {inv.limitedPartner?.email || "Unknown LP"}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ color: "#e6edf7", fontSize: 14 }}>
+                          {inv.limitedPartner?.email || "Unknown LP"}
+                        </div>
+                        <div style={{ color: "#8b949e", fontSize: 12 }}>
+                          {new Date(inv.investedAt).toLocaleDateString()}
+                        </div>
                       </div>
-                      <div style={{ color: "#8b949e", fontSize: 12 }}>
-                        {new Date(inv.investedAt).toLocaleDateString()}
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ color: "#238636", fontSize: 16, fontWeight: 600 }}>
+                          {formatCurrency(inv.amount)}
+                        </div>
+                        <div
+                          style={{
+                            color:
+                              inv.status === "confirmed"
+                                ? "#238636"
+                                : inv.status === "cancelled"
+                                  ? "#f85149"
+                                  : "#d29922",
+                            fontSize: 12,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {inv.status}
+                        </div>
                       </div>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ color: "#238636", fontSize: 16, fontWeight: 600 }}>
-                        {formatCurrency(inv.amount)}
+                    
+                    {/* Token info for confirmed investments */}
+                    {inv.status === "confirmed" && inv.tokensIssued && (
+                      <div style={{
+                        marginTop: 8,
+                        paddingTop: 8,
+                        borderTop: "1px solid #30363d",
+                        display: "flex",
+                        gap: 16,
+                        fontSize: 12,
+                      }}>
+                        <div>
+                          <span style={{ color: "#8b949e" }}>Tokens: </span>
+                          <span style={{ color: "#58a6ff" }}>{inv.tokensIssued}</span>
+                        </div>
+                        {inv.transactionHash && (
+                          <div>
+                            <span style={{ color: "#8b949e" }}>Tx: </span>
+                            <code style={{ color: "#58a6ff", fontFamily: "monospace" }}>
+                              {inv.transactionHash.slice(0, 10)}...
+                            </code>
+                          </div>
+                        )}
                       </div>
-                      <div
-                        style={{
-                          color:
-                            inv.status === "confirmed"
-                              ? "#238636"
-                              : inv.status === "cancelled"
-                                ? "#f85149"
-                                : "#d29922",
-                          fontSize: 12,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {inv.status}
+                    )}
+
+                    {/* Action buttons for pending investments */}
+                    {inv.status === "pending" && (
+                      <div style={{
+                        marginTop: 12,
+                        paddingTop: 12,
+                        borderTop: "1px solid #30363d",
+                        display: "flex",
+                        gap: 8,
+                      }}>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await investmentsApi.updateStatus(inv.id, { status: "confirmed" });
+                              fetchFund();
+                            } catch (err) {
+                              setError(err instanceof Error ? err.message : "Failed to confirm investment");
+                            }
+                          }}
+                          style={{
+                            backgroundColor: "#238636",
+                            border: "none",
+                            borderRadius: 6,
+                            color: "#ffffff",
+                            padding: "6px 12px",
+                            fontSize: 12,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✓ Confirm & Mint Tokens
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await investmentsApi.updateStatus(inv.id, { status: "cancelled" });
+                              fetchFund();
+                            } catch (err) {
+                              setError(err instanceof Error ? err.message : "Failed to cancel investment");
+                            }
+                          }}
+                          style={{
+                            backgroundColor: "#21262d",
+                            border: "1px solid #f85149",
+                            borderRadius: 6,
+                            color: "#f85149",
+                            padding: "6px 12px",
+                            fontSize: 12,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✕ Cancel
+                        </button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>

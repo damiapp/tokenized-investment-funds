@@ -1,4 +1,5 @@
 const { Investment, Fund, User, KycStatus } = require("../models");
+const contractService = require("../services/contractService");
 
 const investmentController = {
   async create(req, res) {
@@ -219,7 +220,7 @@ const investmentController = {
   async updateStatus(req, res) {
     try {
       const { id } = req.params;
-      const { status, transactionHash, tokensIssued } = req.body;
+      const { status } = req.body;
 
       if (!status) {
         return res.status(400).json({
@@ -231,7 +232,10 @@ const investmentController = {
       }
 
       const investment = await Investment.findByPk(id, {
-        include: [{ model: Fund, as: "fund" }],
+        include: [
+          { model: Fund, as: "fund" },
+          { model: User, as: "limitedPartner" },
+        ],
       });
 
       if (!investment) {
@@ -253,11 +257,16 @@ const investmentController = {
       }
 
       const updates = { status };
-      if (transactionHash) {
-        updates.transactionHash = transactionHash;
-      }
-      if (tokensIssued) {
-        updates.tokensIssued = tokensIssued;
+      let tokenMintResult = null;
+
+      // Mint tokens when confirming investment
+      if (status === "confirmed" && investment.status !== "confirmed") {
+        tokenMintResult = await investmentController.mintTokensForInvestment(investment);
+        
+        if (tokenMintResult.success) {
+          updates.transactionHash = tokenMintResult.txHash;
+          updates.tokensIssued = tokenMintResult.tokensIssued;
+        }
       }
 
       await investment.update(updates);
@@ -265,6 +274,7 @@ const investmentController = {
       res.status(200).json({
         data: {
           investment,
+          tokenMint: tokenMintResult,
           message: "Investment status updated successfully",
         },
       });
@@ -276,6 +286,47 @@ const investmentController = {
           message: "Failed to update investment",
         },
       });
+    }
+  },
+
+  // Mint fund tokens for a confirmed investment
+  async mintTokensForInvestment(investment) {
+    try {
+      const lp = investment.limitedPartner;
+      
+      if (!lp?.walletAddress) {
+        console.warn(`Cannot mint tokens: LP ${investment.lpId} has no wallet address`);
+        return { success: false, reason: "no_wallet_address" };
+      }
+
+      // Initialize contract service if needed
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        console.warn("Cannot mint tokens: Contract service not initialized");
+        return { success: false, reason: "contract_service_not_initialized" };
+      }
+
+      // Calculate tokens to issue (1 token = $1 for simplicity)
+      // In production, this would use the fund's token price
+      const tokensToMint = parseFloat(investment.amount);
+
+      // Mint tokens to LP's wallet
+      const txHash = await contractService.mintFundTokens(lp.walletAddress, tokensToMint);
+      
+      console.log(`Minted ${tokensToMint} tokens to ${lp.walletAddress}: tx ${txHash}`);
+
+      return {
+        success: true,
+        txHash,
+        tokensIssued: tokensToMint,
+        walletAddress: lp.walletAddress,
+      };
+    } catch (error) {
+      console.error("Token minting error:", error.message);
+      return { success: false, reason: "mint_failed", error: error.message };
     }
   },
 };
