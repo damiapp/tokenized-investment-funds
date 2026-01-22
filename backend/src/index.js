@@ -32,16 +32,14 @@ const kycRoutes = require("./routes/kyc");
 const fundRoutes = require("./routes/funds");
 const investmentRoutes = require("./routes/investments");
 const contractRoutes = require("./routes/contracts");
+const healthRoutes = require("./routes/health");
 
 app.use("/auth", authRoutes);
 app.use("/kyc", kycRoutes);
 app.use("/funds", fundRoutes);
 app.use("/investments", investmentRoutes);
 app.use("/contracts", contractRoutes);
-
-app.get("/health", (_req, res) => {
-  res.status(200).json({ ok: true });
-});
+app.use("/health", healthRoutes);
 
 
 app.use((req, res) => {

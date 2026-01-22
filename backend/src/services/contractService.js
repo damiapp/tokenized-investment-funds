@@ -9,6 +9,7 @@ class ContractService {
     this.kycRegistry = null;
     this.fundToken = null;
     this.initialized = false;
+    this.networkInfo = null;
   }
 
   async initialize() {
@@ -25,14 +26,37 @@ class ContractService {
 
       const deployed = JSON.parse(fs.readFileSync(deployedPath, "utf8"));
       
-      // Connect to local Hardhat node
+      // Connect to blockchain
       const rpcUrl = process.env.RPC_URL || "http://127.0.0.1:8545";
       this.provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
-      // Use deployer private key for signing (Hardhat default account #0)
+      // Verify network connection
+      try {
+        const network = await this.provider.getNetwork();
+        this.networkInfo = {
+          chainId: network.chainId,
+          name: network.name,
+          rpcUrl,
+        };
+        console.log(`Connected to network: ${network.name} (chainId: ${network.chainId})`);
+        
+        // Validate chain ID if configured
+        const expectedChainId = process.env.CHAIN_ID ? parseInt(process.env.CHAIN_ID) : null;
+        if (expectedChainId && network.chainId !== expectedChainId) {
+          console.warn(`Chain ID mismatch! Expected ${expectedChainId}, got ${network.chainId}`);
+        }
+      } catch (networkError) {
+        console.error("Failed to connect to blockchain:", networkError.message);
+        return;
+      }
+
+      // Use deployer private key for signing
       const privateKey = process.env.DEPLOYER_PRIVATE_KEY || 
         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Hardhat default
       this.signer = new ethers.Wallet(privateKey, this.provider);
+
+      // Log signer address
+      console.log("Signer address:", this.signer.address);
 
       // Initialize contracts
       const { KYCRegistry, FundToken } = deployed.contracts;
@@ -58,8 +82,109 @@ class ContractService {
     }
   }
 
+  getNetworkInfo() {
+    return this.networkInfo;
+  }
+
   isInitialized() {
     return this.initialized;
+  }
+
+  // Get current gas price with optional multiplier
+  async getGasPrice() {
+    if (!this.provider) return null;
+    
+    try {
+      const gasPrice = await this.provider.getGasPrice();
+      const multiplier = parseFloat(process.env.GAS_LIMIT_MULTIPLIER || "1.2");
+      const adjustedGasPrice = gasPrice.mul(Math.floor(multiplier * 100)).div(100);
+      
+      // Check against max gas price if configured
+      const maxGasPriceGwei = process.env.MAX_GAS_PRICE_GWEI;
+      if (maxGasPriceGwei) {
+        const maxGasPrice = ethers.utils.parseUnits(maxGasPriceGwei, "gwei");
+        if (adjustedGasPrice.gt(maxGasPrice)) {
+          console.warn(`Gas price ${ethers.utils.formatUnits(adjustedGasPrice, "gwei")} gwei exceeds max ${maxGasPriceGwei} gwei`);
+          return maxGasPrice;
+        }
+      }
+      
+      return adjustedGasPrice;
+    } catch (error) {
+      console.error("Failed to get gas price:", error.message);
+      return null;
+    }
+  }
+
+  // Estimate gas for a transaction
+  async estimateGas(contract, method, args) {
+    try {
+      const gasEstimate = await contract.estimateGas[method](...args);
+      const multiplier = parseFloat(process.env.GAS_LIMIT_MULTIPLIER || "1.2");
+      return gasEstimate.mul(Math.floor(multiplier * 100)).div(100);
+    } catch (error) {
+      console.error(`Failed to estimate gas for ${method}:`, error.message);
+      throw error;
+    }
+  }
+
+  // Get transaction cost estimate in native currency
+  async estimateTransactionCost(contract, method, args) {
+    try {
+      const gasEstimate = await this.estimateGas(contract, method, args);
+      const gasPrice = await this.getGasPrice();
+      
+      if (!gasEstimate || !gasPrice) return null;
+      
+      const cost = gasEstimate.mul(gasPrice);
+      return {
+        gasLimit: gasEstimate.toString(),
+        gasPrice: ethers.utils.formatUnits(gasPrice, "gwei") + " gwei",
+        estimatedCost: ethers.utils.formatEther(cost) + " ETH/MATIC",
+      };
+    } catch (error) {
+      console.error("Failed to estimate transaction cost:", error.message);
+      return null;
+    }
+  }
+
+  // Execute transaction with retry logic
+  async executeWithRetry(txPromise, maxRetries = 3) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const tx = await txPromise();
+        const receipt = await tx.wait();
+        return {
+          success: true,
+          txHash: receipt.transactionHash,
+          blockNumber: receipt.blockNumber,
+          gasUsed: receipt.gasUsed.toString(),
+        };
+      } catch (error) {
+        lastError = error;
+        console.error(`Transaction attempt ${attempt}/${maxRetries} failed:`, error.message);
+        
+        // Don't retry on certain errors
+        if (error.code === "INSUFFICIENT_FUNDS" || 
+            error.code === "UNPREDICTABLE_GAS_LIMIT" ||
+            error.message.includes("revert")) {
+          break;
+        }
+        
+        // Wait before retry
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+        }
+      }
+    }
+    
+    return {
+      success: false,
+      error: lastError?.message || "Transaction failed",
+      code: lastError?.code,
+    };
   }
 
   async isKycVerified(walletAddress) {
