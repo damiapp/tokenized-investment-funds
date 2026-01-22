@@ -208,6 +208,51 @@ const authController = {
       });
     }
   },
+
+  async updateWalletAddress(req, res) {
+    try {
+      const { walletAddress } = req.body;
+      const user = req.user;
+
+      // Validate wallet address
+      if (!walletAddress) {
+        return res.status(400).json({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Wallet address is required",
+          },
+        });
+      }
+
+      const walletRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!walletRegex.test(walletAddress)) {
+        return res.status(400).json({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid wallet address format",
+          },
+        });
+      }
+
+      // Update user's wallet address
+      await user.update({ walletAddress });
+
+      res.status(200).json({
+        data: {
+          message: "Wallet address updated successfully",
+          walletAddress,
+        },
+      });
+    } catch (error) {
+      console.error("Update wallet address error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to update wallet address",
+        },
+      });
+    }
+  },
 };
 
 module.exports = authController;

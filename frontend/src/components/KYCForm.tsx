@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { kycApi, type KYCUploadDocument, type KYCDocumentType } from "../api/kyc";
 import { useAuth } from "../contexts/AuthContext";
+import { useWallet } from "../contexts/WalletContext";
 
 interface KYCFormProps {
   onKYCSubmitted: () => void;
@@ -8,6 +9,7 @@ interface KYCFormProps {
 
 export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
   const { user } = useAuth();
+  const { isConnected, address } = useWallet();
   const [documents, setDocuments] = useState<KYCUploadDocument[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +120,54 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
         <h1 style={{ color: "#e6edf7", marginBottom: 24, textAlign: "center" }}>
           KYC Verification
         </h1>
+
+        {/* Wallet connection warning */}
+        {!isConnected && (
+          <div style={{
+            backgroundColor: "#0d1117",
+            border: "1px solid #f0883e",
+            borderRadius: 8,
+            padding: 16,
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+          }}>
+            <span style={{ fontSize: 20 }}>⚠️</span>
+            <div>
+              <div style={{ color: "#f0883e", fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
+                Wallet Not Connected
+              </div>
+              <div style={{ color: "#8b949e", fontSize: 13 }}>
+                Connect your wallet before submitting KYC to enable on-chain verification. 
+                Without a wallet address, your KYC approval cannot be synced to the blockchain.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isConnected && address && (
+          <div style={{
+            backgroundColor: "#0d1117",
+            border: "1px solid #238636",
+            borderRadius: 8,
+            padding: 12,
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}>
+            <span style={{ fontSize: 16 }}>✓</span>
+            <div>
+              <div style={{ color: "#238636", fontSize: 13 }}>
+                Wallet connected: <code style={{ fontFamily: "monospace" }}>{address.slice(0, 6)}...{address.slice(-4)}</code>
+              </div>
+              <div style={{ color: "#8b949e", fontSize: 12 }}>
+                KYC approval will be synced to this address on-chain.
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {documentTypes.map(({ type, label, description }) => {

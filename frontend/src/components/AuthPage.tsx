@@ -1,11 +1,35 @@
 import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
 import { RegisterForm } from "./RegisterForm";
+import { useAuth } from "../contexts/AuthContext";
 
 export function AuthPage() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
 
   const toggleMode = () => setIsLogin(!isLogin);
+
+  // Redirect to funds if already logged in
+  if (isAuthenticated) {
+    return <Navigate to="/funds" replace />;
+  }
+
+  // Show loading while checking auth status
+  if (isLoading) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        backgroundColor: "#0d1117",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#e6edf7",
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div

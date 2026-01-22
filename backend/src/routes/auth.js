@@ -13,4 +13,7 @@ router.post("/login", authController.login);
 // GET /me
 router.get("/me", authMiddleware, authController.getCurrentUser);
 
+// PUT /wallet - Update wallet address
+router.put("/wallet", authMiddleware, authController.updateWalletAddress);
+
 module.exports = router;

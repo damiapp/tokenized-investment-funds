@@ -17,10 +17,13 @@ type AuthAction =
   | { type: "CLEAR_ERROR" }
   | { type: "SET_USER"; payload: User };
 
+// Check if there's a token in localStorage to determine initial loading state
+const hasStoredToken = !!localStorage.getItem("auth_token");
+
 const initialState: AuthState = {
   user: null,
   token: null,
-  isLoading: false,
+  isLoading: hasStoredToken, // Start loading if we have a token to verify
   error: null,
   isAuthenticated: false,
 };

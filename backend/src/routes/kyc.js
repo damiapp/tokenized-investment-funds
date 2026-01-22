@@ -20,4 +20,7 @@ router.get("/documents/:documentId/download", kycController.downloadDocument);
 // Webhook for KYC provider updates
 router.post("/webhook", kycController.webhook);
 
+// Manually trigger blockchain sync for approved KYC
+router.post("/sync-blockchain", kycController.manualBlockchainSync);
+
 module.exports = router;

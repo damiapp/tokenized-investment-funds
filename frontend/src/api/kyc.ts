@@ -26,6 +26,13 @@ export interface KYCSubmission {
   documents: KYCUploadDocument[];
 }
 
+export interface KYCOnChainStatus {
+  txHash?: string;
+  syncedAt?: string;
+  verified: boolean;
+  error?: string | null;
+}
+
 export interface KYCStatus {
   status: "pending" | "submitted" | "approved" | "rejected";
   providerRef?: string;
@@ -34,6 +41,7 @@ export interface KYCStatus {
   reviewedAt?: string;
   rejectionReason?: string;
   updatedAt: string;
+  onChain?: KYCOnChainStatus;
 }
 
 export interface KYCSubmissionResponse {

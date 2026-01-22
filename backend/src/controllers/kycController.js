@@ -1,6 +1,7 @@
-const { KycStatus } = require("../models");
+const { KycStatus, User } = require("../models");
 const path = require("path");
 const fs = require("fs");
+const contractService = require("../services/contractService");
 
 const kycController = {
   async submit(req, res) {
@@ -161,6 +162,14 @@ const kycController = {
           };
         });
 
+      // Get user's wallet address for on-chain status check
+      const user = await User.findByPk(userId);
+      let onChainStatus = null;
+      
+      if (user?.walletAddress && kycStatus.status === "approved") {
+        onChainStatus = await kycController.getOnChainKycStatus(user.walletAddress);
+      }
+
       res.status(200).json({
         data: {
           status: kycStatus.status,
@@ -170,6 +179,12 @@ const kycController = {
           reviewedAt: kycStatus.reviewedAt,
           rejectionReason: kycStatus.rejectionReason,
           updatedAt: kycStatus.updatedAt,
+          onChain: {
+            txHash: kycStatus.onChainTxHash,
+            syncedAt: kycStatus.onChainSyncedAt,
+            verified: onChainStatus?.verified || false,
+            error: onChainStatus?.error || null,
+          },
         },
       });
     } catch (error) {
@@ -301,11 +316,18 @@ const kycController = {
 
       await kycStatus.update(updateData);
 
+      // Sync to blockchain if approved
+      let blockchainSync = null;
+      if (status === "approved") {
+        blockchainSync = await kycController.syncKycToBlockchain(kycStatus.userId);
+      }
+
       res.status(200).json({
         data: {
           message: "KYC status updated successfully",
           status,
           providerRef,
+          blockchainSync,
         },
       });
     } catch (error) {
@@ -336,9 +358,134 @@ const kycController = {
 
         await kycStatus.update(updateData);
         console.log(`Mock KYC update: User ${userId}, Status: ${status}`);
+
+        // Sync to blockchain if approved
+        if (status === "approved") {
+          await kycController.syncKycToBlockchain(userId);
+        }
       }
     } catch (error) {
       console.error("Mock provider update error:", error);
+    }
+  },
+
+  // Sync KYC approval status to blockchain
+  async syncKycToBlockchain(userId) {
+    try {
+      // Get user's wallet address
+      const user = await User.findByPk(userId);
+      
+      if (!user) {
+        console.warn(`Cannot sync KYC to blockchain: User ${userId} not found`);
+        return { success: false, reason: "user_not_found" };
+      }
+
+      if (!user.walletAddress) {
+        console.warn(`Cannot sync KYC to blockchain: User ${userId} has no wallet address`);
+        return { success: false, reason: "no_wallet_address" };
+      }
+
+      // Check if contract service is initialized
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        console.warn("Cannot sync KYC to blockchain: Contract service not initialized (Hardhat node may not be running)");
+        return { success: false, reason: "contract_service_not_initialized" };
+      }
+
+      // Set KYC verified on-chain
+      const txHash = await contractService.setKycVerified(user.walletAddress, true);
+      console.log(`KYC synced to blockchain for ${user.walletAddress}: tx ${txHash}`);
+
+      // Update KYC status with on-chain transaction hash
+      const kycStatus = await KycStatus.findOne({ where: { userId } });
+      if (kycStatus) {
+        await kycStatus.update({
+          onChainTxHash: txHash,
+          onChainSyncedAt: new Date(),
+        });
+      }
+
+      return { success: true, txHash };
+    } catch (error) {
+      console.error("Failed to sync KYC to blockchain:", error.message);
+      return { success: false, reason: "blockchain_error", error: error.message };
+    }
+  },
+
+  // Manually trigger blockchain sync for approved KYC
+  async manualBlockchainSync(req, res) {
+    try {
+      const userId = req.user.id;
+      
+      // Check if KYC is approved
+      const kycStatus = await KycStatus.findOne({ where: { userId } });
+      
+      if (!kycStatus) {
+        return res.status(404).json({
+          error: { code: "NOT_FOUND", message: "KYC status not found" },
+        });
+      }
+
+      if (kycStatus.status !== "approved") {
+        return res.status(400).json({
+          error: { code: "INVALID_STATUS", message: "KYC must be approved before syncing to blockchain" },
+        });
+      }
+
+      // Check if user has wallet address
+      const user = await User.findByPk(userId);
+      if (!user?.walletAddress) {
+        return res.status(400).json({
+          error: { code: "NO_WALLET", message: "Please connect your wallet first" },
+        });
+      }
+
+      // Trigger sync
+      const result = await kycController.syncKycToBlockchain(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          data: {
+            message: "KYC synced to blockchain successfully",
+            txHash: result.txHash,
+          },
+        });
+      } else {
+        res.status(500).json({
+          error: { 
+            code: "SYNC_FAILED", 
+            message: `Blockchain sync failed: ${result.reason}`,
+            reason: result.reason,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Manual blockchain sync error:", error);
+      res.status(500).json({
+        error: { code: "INTERNAL", message: "Failed to sync KYC to blockchain" },
+      });
+    }
+  },
+
+  // Get on-chain KYC status for a wallet address
+  async getOnChainKycStatus(walletAddress) {
+    try {
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return { verified: false, error: "Contract service not initialized" };
+      }
+
+      const verified = await contractService.isKycVerified(walletAddress);
+      return { verified, error: null };
+    } catch (error) {
+      console.error("Failed to get on-chain KYC status:", error.message);
+      return { verified: false, error: error.message };
     }
   },
 };

@@ -8,6 +8,7 @@ export function KYCStatus() {
   const [kycData, setKycData] = useState<KYCStatusType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -34,6 +35,33 @@ export function KYCStatus() {
       setError(error instanceof Error ? error.message : "Failed to fetch KYC status");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSyncToBlockchain = async () => {
+    setIsSyncing(true);
+    setError(null);
+    try {
+      const token = apiClient.getToken();
+      const response = await fetch(`${API_BASE_URL}/kyc/sync-blockchain`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || "Failed to sync to blockchain");
+      }
+
+      // Refresh KYC status to show updated on-chain status
+      await fetchKYCStatus();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to sync to blockchain");
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -239,6 +267,107 @@ export function KYCStatus() {
             <div style={{ color: "#ffffff", fontSize: 12 }}>
               {kycData.rejectionReason}
             </div>
+          </div>
+        )}
+
+        {/* On-Chain Status Section */}
+        {kycData.status === "approved" && (
+          <div style={{
+            backgroundColor: "#0d1117",
+            border: "1px solid #30363d",
+            borderRadius: 6,
+            padding: 12,
+            marginTop: 12,
+          }}>
+            <div style={{ 
+              color: "#e6edf7", 
+              fontSize: 14, 
+              fontWeight: 500, 
+              marginBottom: 8,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}>
+              <span>⛓️</span>
+              <span>Blockchain Status</span>
+            </div>
+            
+            {kycData.onChain?.verified ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 8,
+                  color: "#238636",
+                  fontSize: 13,
+                }}>
+                  <span>✓</span>
+                  <span>Verified on-chain</span>
+                </div>
+                {kycData.onChain.txHash && (
+                  <div style={{ color: "#8b949e", fontSize: 12 }}>
+                    <span>Tx: </span>
+                    <code style={{ 
+                      backgroundColor: "#21262d", 
+                      padding: "2px 6px", 
+                      borderRadius: 4,
+                      fontFamily: "monospace",
+                    }}>
+                      {kycData.onChain.txHash.slice(0, 10)}...{kycData.onChain.txHash.slice(-8)}
+                    </code>
+                  </div>
+                )}
+                {kycData.onChain.syncedAt && (
+                  <div style={{ color: "#8b949e", fontSize: 11 }}>
+                    Synced: {new Date(kycData.onChain.syncedAt).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            ) : kycData.onChain?.error ? (
+              <div style={{ 
+                color: "#f0883e", 
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}>
+                <span>⚠️</span>
+                <span>Pending sync: {kycData.onChain.error}</span>
+              </div>
+            ) : (
+              <div style={{ 
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}>
+                <div style={{ 
+                  color: "#8b949e", 
+                  fontSize: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}>
+                  <span>⏳</span>
+                  <span>Awaiting blockchain sync...</span>
+                </div>
+                <button
+                  onClick={handleSyncToBlockchain}
+                  disabled={isSyncing}
+                  style={{
+                    backgroundColor: isSyncing ? "#484f58" : "#238636",
+                    border: "none",
+                    borderRadius: 6,
+                    color: "#ffffff",
+                    padding: "8px 12px",
+                    cursor: isSyncing ? "not-allowed" : "pointer",
+                    fontSize: 12,
+                    marginTop: 4,
+                  }}
+                >
+                  {isSyncing ? "Syncing..." : "⛓️ Sync to Blockchain"}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
