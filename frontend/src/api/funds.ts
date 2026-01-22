@@ -159,4 +159,31 @@ export const investmentsApi = {
       body: JSON.stringify(data),
     });
   },
+
+  async getPortfolio(): Promise<{
+    data: {
+      investments: Investment[];
+      summary: {
+        totalInvested: number;
+        totalTokensIssued: number;
+        investmentCount: number;
+      };
+      onChain: {
+        walletAddress: string | null;
+        balances: Array<{
+          address: string | null;
+          symbol: string;
+          fundName: string;
+          fundId: string | null;
+          balance: string | null;
+          error?: string;
+        }>;
+        error: string | null;
+      };
+    };
+  }> {
+    return apiClient.makeRequest("/investments/portfolio", {
+      method: "GET",
+    });
+  },
 };

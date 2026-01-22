@@ -1,5 +1,6 @@
 const { Fund, User, Investment } = require("../models");
 const { Op } = require("sequelize");
+const contractService = require("../services/contractService");
 
 const fundController = {
   async create(req, res) {
@@ -210,11 +211,25 @@ const fundController = {
         }
       });
 
+      // Deploy token contract when activating fund
+      let tokenDeployment = null;
+      if (updates.status === "active" && fund.status !== "active" && !fund.contractAddress) {
+        tokenDeployment = await fundController.deployTokenForFund(fund);
+        if (tokenDeployment.success) {
+          updates.contractAddress = tokenDeployment.address;
+          // Use provided tokenSymbol or generate one
+          if (!updates.tokenSymbol && !fund.tokenSymbol) {
+            updates.tokenSymbol = tokenDeployment.symbol;
+          }
+        }
+      }
+
       await fund.update(updates);
 
       res.status(200).json({
         data: {
           fund,
+          tokenDeployment,
           message: "Fund updated successfully",
         },
       });
@@ -278,6 +293,38 @@ const fundController = {
           message: "Failed to delete fund",
         },
       });
+    }
+  },
+
+  // Deploy a token contract for a fund
+  async deployTokenForFund(fund) {
+    try {
+      // Initialize contract service if needed
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        console.warn("Cannot deploy token: Contract service not initialized");
+        return { success: false, reason: "contract_service_not_initialized" };
+      }
+
+      // Generate token name and symbol from fund name
+      const tokenName = `${fund.name} Token`;
+      const tokenSymbol = fund.tokenSymbol || fund.name.substring(0, 4).toUpperCase().replace(/\s/g, "");
+
+      const result = await contractService.deployFundToken(tokenName, tokenSymbol);
+
+      return {
+        success: true,
+        address: result.address,
+        name: tokenName,
+        symbol: tokenSymbol,
+        txHash: result.txHash,
+      };
+    } catch (error) {
+      console.error("Token deployment error:", error.message);
+      return { success: false, reason: "deployment_failed", error: error.message };
     }
   },
 

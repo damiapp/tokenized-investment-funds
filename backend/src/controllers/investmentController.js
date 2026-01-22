@@ -289,10 +289,137 @@ const investmentController = {
     }
   },
 
+  // Get portfolio with on-chain token balances
+  async getPortfolio(req, res) {
+    try {
+      const userId = req.user.id;
+      const user = req.user;
+
+      // Get all confirmed investments for this user
+      const investments = await Investment.findAll({
+        where: { lpId: userId, status: "confirmed" },
+        include: [
+          {
+            model: Fund,
+            as: "fund",
+            include: [
+              {
+                model: User,
+                as: "generalPartner",
+                attributes: ["id", "email"],
+              },
+            ],
+          },
+        ],
+        order: [["investedAt", "DESC"]],
+      });
+
+      // Get on-chain token balances if user has wallet
+      let onChainBalances = [];
+      let onChainError = null;
+
+      if (user.walletAddress) {
+        try {
+          if (!contractService.isInitialized()) {
+            await contractService.initialize();
+          }
+
+          if (contractService.isInitialized()) {
+            // Get unique fund token contracts
+            const fundContracts = new Map();
+            
+            for (const inv of investments) {
+              if (inv.fund?.contractAddress && !fundContracts.has(inv.fund.contractAddress)) {
+                fundContracts.set(inv.fund.contractAddress, {
+                  address: inv.fund.contractAddress,
+                  symbol: inv.fund.tokenSymbol,
+                  fundName: inv.fund.name,
+                  fundId: inv.fund.id,
+                });
+              }
+            }
+
+            // Fetch balance for each fund token
+            for (const [address, info] of fundContracts) {
+              try {
+                const balance = await contractService.getFundTokenBalance(user.walletAddress, address);
+                onChainBalances.push({
+                  ...info,
+                  balance,
+                });
+              } catch (err) {
+                console.error(`Failed to get balance for ${info.symbol}:`, err.message);
+                onChainBalances.push({
+                  ...info,
+                  balance: null,
+                  error: err.message,
+                });
+              }
+            }
+
+            // Also get default token balance
+            try {
+              const defaultBalance = await contractService.getFundTokenBalance(user.walletAddress);
+              onChainBalances.unshift({
+                address: null,
+                symbol: "DFT",
+                fundName: "Default Fund Token",
+                fundId: null,
+                balance: defaultBalance,
+              });
+            } catch (err) {
+              console.error("Failed to get default token balance:", err.message);
+            }
+          } else {
+            onChainError = "Contract service not initialized";
+          }
+        } catch (error) {
+          console.error("Failed to get on-chain balances:", error.message);
+          onChainError = error.message;
+        }
+      }
+
+      // Calculate totals from database records
+      const totalInvested = investments.reduce(
+        (sum, inv) => sum + parseFloat(inv.amount),
+        0
+      );
+      const totalTokensIssued = investments.reduce(
+        (sum, inv) => sum + (parseFloat(inv.tokensIssued) || 0),
+        0
+      );
+
+      res.status(200).json({
+        data: {
+          investments,
+          summary: {
+            totalInvested,
+            totalTokensIssued,
+            investmentCount: investments.length,
+          },
+          onChain: {
+            walletAddress: user.walletAddress,
+            balances: onChainBalances,
+            error: onChainError,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Get portfolio error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to retrieve portfolio",
+        },
+      });
+    }
+  },
+
   // Mint fund tokens for a confirmed investment
   async mintTokensForInvestment(investment) {
     try {
       const lp = investment.limitedPartner;
+      const fund = investment.fund;
       
       if (!lp?.walletAddress) {
         console.warn(`Cannot mint tokens: LP ${investment.lpId} has no wallet address`);
@@ -313,16 +440,29 @@ const investmentController = {
       // In production, this would use the fund's token price
       const tokensToMint = parseFloat(investment.amount);
 
-      // Mint tokens to LP's wallet
-      const txHash = await contractService.mintFundTokens(lp.walletAddress, tokensToMint);
+      let txHash;
       
-      console.log(`Minted ${tokensToMint} tokens to ${lp.walletAddress}: tx ${txHash}`);
+      // Use fund-specific token contract if available, otherwise use default
+      if (fund?.contractAddress) {
+        txHash = await contractService.mintFundTokensForFund(
+          fund.contractAddress,
+          lp.walletAddress,
+          tokensToMint
+        );
+        console.log(`Minted ${tokensToMint} ${fund.tokenSymbol || 'tokens'} to ${lp.walletAddress} (fund: ${fund.name}): tx ${txHash}`);
+      } else {
+        // Fallback to default token contract
+        txHash = await contractService.mintFundTokens(lp.walletAddress, tokensToMint);
+        console.log(`Minted ${tokensToMint} DFT tokens to ${lp.walletAddress}: tx ${txHash}`);
+      }
 
       return {
         success: true,
         txHash,
         tokensIssued: tokensToMint,
         walletAddress: lp.walletAddress,
+        tokenContract: fund?.contractAddress || null,
+        tokenSymbol: fund?.tokenSymbol || "DFT",
       };
     } catch (error) {
       console.error("Token minting error:", error.message);

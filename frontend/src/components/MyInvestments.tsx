@@ -3,27 +3,70 @@ import { useNavigate } from "react-router-dom";
 import { investmentsApi, type Investment } from "../api/funds";
 import { useAuth } from "../contexts/AuthContext";
 
+interface PortfolioSummary {
+  totalInvested: number;
+  totalTokensIssued: number;
+  investmentCount: number;
+}
+
+interface TokenBalance {
+  address: string | null;
+  symbol: string;
+  fundName: string;
+  fundId: string | null;
+  balance: string | null;
+  error?: string;
+}
+
+interface OnChainInfo {
+  walletAddress: string | null;
+  balances: TokenBalance[];
+  error: string | null;
+}
+
 export function MyInvestments() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [summary, setSummary] = useState<PortfolioSummary | null>(null);
+  const [onChain, setOnChain] = useState<OnChainInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
 
   useEffect(() => {
-    fetchInvestments();
+    fetchPortfolio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (statusFilter) {
+      fetchFilteredInvestments();
+    } else {
+      fetchPortfolio();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
-  const fetchInvestments = async () => {
+  const fetchPortfolio = async () => {
     try {
       setIsLoading(true);
-      const params: { status?: string } = {};
-      if (statusFilter) params.status = statusFilter;
+      const response = await investmentsApi.getPortfolio();
+      setInvestments(response.data.investments);
+      setSummary(response.data.summary);
+      setOnChain(response.data.onChain);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load portfolio");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      const response = await investmentsApi.getAll(params);
+  const fetchFilteredInvestments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await investmentsApi.getAll({ status: statusFilter });
       setInvestments(response.data.investments);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load investments");
@@ -90,6 +133,81 @@ export function MyInvestments() {
         </p>
       </div>
 
+      {/* On-Chain Token Balances Card */}
+      {onChain && (
+        <div
+          style={{
+            backgroundColor: "#161b22",
+            border: "1px solid #58a6ff",
+            borderRadius: 6,
+            padding: 20,
+            marginBottom: 24,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: 20 }}>⛓️</span>
+            <h3 style={{ color: "#e6edf7", margin: 0, fontSize: 16 }}>On-Chain Token Balances</h3>
+          </div>
+          
+          {onChain.walletAddress ? (
+            <div>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Wallet</div>
+                <code style={{ color: "#58a6ff", fontSize: 14, fontFamily: "monospace" }}>
+                  {onChain.walletAddress.slice(0, 6)}...{onChain.walletAddress.slice(-4)}
+                </code>
+              </div>
+              
+              {onChain.error ? (
+                <div style={{ color: "#f0883e", fontSize: 14 }}>
+                  ⚠️ {onChain.error}
+                </div>
+              ) : onChain.balances && onChain.balances.length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+                  {onChain.balances.map((token, index) => (
+                    <div
+                      key={token.address || index}
+                      style={{
+                        backgroundColor: "#21262d",
+                        border: "1px solid #30363d",
+                        borderRadius: 6,
+                        padding: 12,
+                        minWidth: 140,
+                      }}
+                    >
+                      <div style={{ color: "#8b949e", fontSize: 11, marginBottom: 4 }}>
+                        {token.fundName}
+                      </div>
+                      {token.balance !== null ? (
+                        <div style={{ color: "#238636", fontSize: 18, fontWeight: 600 }}>
+                          {parseFloat(token.balance).toLocaleString()} {token.symbol}
+                        </div>
+                      ) : token.error ? (
+                        <div style={{ color: "#f0883e", fontSize: 12 }}>⚠️ Error</div>
+                      ) : (
+                        <div style={{ color: "#8b949e", fontSize: 14 }}>--</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: "#8b949e", fontSize: 14 }}>No token balances found</div>
+              )}
+              
+              {summary && (
+                <div style={{ marginTop: 12, color: "#8b949e", fontSize: 12 }}>
+                  DB Records: {summary.totalTokensIssued.toLocaleString()} tokens issued
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ color: "#f0883e", fontSize: 14 }}>
+              ⚠️ Connect your wallet to view on-chain token balances
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Stats */}
       <div
         style={{
@@ -109,7 +227,7 @@ export function MyInvestments() {
         >
           <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Total Invested</div>
           <div style={{ color: "#238636", fontSize: 24, fontWeight: 600 }}>
-            {formatCurrency(totalInvested)}
+            {formatCurrency(summary?.totalInvested || 0)}
           </div>
         </div>
         <div
@@ -120,8 +238,8 @@ export function MyInvestments() {
             padding: 20,
           }}
         >
-          <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Confirmed</div>
-          <div style={{ color: "#e6edf7", fontSize: 24, fontWeight: 600 }}>{confirmedCount}</div>
+          <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Investments</div>
+          <div style={{ color: "#e6edf7", fontSize: 24, fontWeight: 600 }}>{summary?.investmentCount || 0}</div>
         </div>
         <div
           style={{
@@ -131,8 +249,10 @@ export function MyInvestments() {
             padding: 20,
           }}
         >
-          <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Pending</div>
-          <div style={{ color: "#d29922", fontSize: 24, fontWeight: 600 }}>{pendingCount}</div>
+          <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Tokens Issued</div>
+          <div style={{ color: "#58a6ff", fontSize: 24, fontWeight: 600 }}>
+            {(summary?.totalTokensIssued || 0).toLocaleString()}
+          </div>
         </div>
       </div>
 

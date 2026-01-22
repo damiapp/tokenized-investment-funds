@@ -87,12 +87,78 @@ class ContractService {
     return tx.hash;
   }
 
-  async getFundTokenBalance(address) {
+  async getFundTokenBalance(address, tokenAddress = null) {
     if (!this.initialized) {
       throw new Error("Contract service not initialized");
     }
-    const balance = await this.fundToken.balanceOf(address);
+    
+    // Use specific token contract if provided, otherwise use default
+    const tokenContract = tokenAddress 
+      ? new ethers.Contract(tokenAddress, this.fundToken.interface, this.provider)
+      : this.fundToken;
+    
+    const balance = await tokenContract.balanceOf(address);
     return ethers.utils.formatEther(balance);
+  }
+
+  // Deploy a new FundToken contract for a specific fund
+  async deployFundToken(name, symbol) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    try {
+      // Load FundToken bytecode from artifacts
+      const deployedPath = path.join(__dirname, "../../../shared/contracts/deployed.json");
+      const deployed = JSON.parse(fs.readFileSync(deployedPath, "utf8"));
+      
+      // Get the KYCRegistry address
+      const kycRegistryAddress = deployed.contracts.KYCRegistry.address;
+      
+      // Load the FundToken artifact for bytecode
+      const artifactPath = path.join(__dirname, "../../../contracts/artifacts/contracts/FundToken.sol/FundToken.json");
+      const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+      
+      // Create contract factory
+      const factory = new ethers.ContractFactory(
+        artifact.abi,
+        artifact.bytecode,
+        this.signer
+      );
+
+      // Deploy the contract
+      console.log(`Deploying FundToken: ${name} (${symbol})...`);
+      const contract = await factory.deploy(name, symbol, kycRegistryAddress);
+      await contract.deployed();
+      
+      console.log(`FundToken deployed to: ${contract.address}`);
+      return {
+        address: contract.address,
+        name,
+        symbol,
+        txHash: contract.deployTransaction.hash,
+      };
+    } catch (error) {
+      console.error("Failed to deploy FundToken:", error.message);
+      throw error;
+    }
+  }
+
+  // Mint tokens using a specific fund's token contract
+  async mintFundTokensForFund(tokenAddress, toAddress, amount) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tokenContract = new ethers.Contract(
+      tokenAddress,
+      this.fundToken.interface,
+      this.signer
+    );
+
+    const tx = await tokenContract.mint(toAddress, ethers.utils.parseEther(amount.toString()));
+    await tx.wait();
+    return tx.hash;
   }
 
   async getContractAddresses() {
