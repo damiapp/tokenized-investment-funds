@@ -2,6 +2,8 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LandingPage } from "./components/LandingPage";
+import { Dashboard } from "./components/Dashboard";
 import { AuthPage } from "./components/AuthPage";
 import { UserProfile } from "./components/UserProfile";
 import { FundList } from "./components/FundList";
@@ -9,6 +11,7 @@ import { CreateFundForm } from "./components/CreateFundForm";
 import { FundDetail } from "./components/FundDetail";
 import { MyFunds } from "./components/MyFunds";
 import { MyInvestments } from "./components/MyInvestments";
+import { TransactionsPage } from "./components/TransactionsPage";
 import { Navbar } from "./components/Navbar";
 import { WalletProvider } from "./contexts/WalletContext";
 
@@ -17,10 +20,18 @@ function App() {
     <AuthProvider>
       <WalletProvider>
         <Router>
-          <div style={{ minHeight: "100vh", backgroundColor: "#0d1117" }}>
+          <div style={{ minHeight: "100vh", backgroundColor: "#1e1e1e" }}>
             <Navbar />
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/profile"
               element={
@@ -69,8 +80,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/profile" replace />} />
-            <Route path="*" element={<Navigate to="/auth" replace />} />
+            <Route
+              path="/transactions"
+              element={
+                <ProtectedRoute>
+                  <TransactionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </div>
         </Router>

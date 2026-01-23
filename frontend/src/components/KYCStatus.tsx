@@ -102,16 +102,29 @@ export function KYCStatus() {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "✅";
+      case "rejected":
+        return "❌";
+      case "submitted":
+        return "⏳";
+      default:
+        return "📋";
+    }
+  };
+
   const getStatusText = (status: string) => {
     switch (status) {
       case "approved":
-        return "✅ Approved";
+        return "Approved";
       case "rejected":
-        return "❌ Rejected";
+        return "Rejected";
       case "submitted":
-        return "⏳ Submitted";
+        return "Submitted";
       default:
-        return "📋 Pending";
+        return "Pending";
     }
   };
 
@@ -218,9 +231,9 @@ export function KYCStatus() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 24,
+            fontSize: 28,
           }}>
-            {getStatusText(kycData.status).charAt(0)}
+            {getStatusIcon(kycData.status)}
           </div>
           <div>
             <div style={{

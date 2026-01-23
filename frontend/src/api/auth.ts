@@ -110,6 +110,47 @@ class ApiClient {
   async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     return this.request<T>(endpoint, options);
   }
+
+  // GET request helper
+  async get<T>(endpoint: string, options: { params?: any; responseType?: string } = {}): Promise<T> {
+    const { params, responseType } = options;
+    let url = endpoint;
+    
+    if (params) {
+      const queryString = new URLSearchParams();
+      Object.keys(params).forEach((key) => {
+        const value = params[key];
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value)) {
+            value.forEach((v) => queryString.append(key, v.toString()));
+          } else {
+            queryString.append(key, value.toString());
+          }
+        }
+      });
+      const queryStr = queryString.toString();
+      if (queryStr) {
+        url = `${endpoint}?${queryStr}`;
+      }
+    }
+
+    if (responseType === "blob") {
+      const fullUrl = `${API_BASE_URL}${url}`;
+      const token = this.getToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(fullUrl, { headers });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.blob() as Promise<T>;
+    }
+
+    return this.request<T>(url);
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -1,59 +1,34 @@
-# Tokenized Investment Funds Platform (Master Thesis Prototype)
+# Tokenized Investment Funds Platform
 
-Prototype platform for **GP (General Partners)** and **LP (Limited Partners)** that digitizes fund creation, onboarding (KYC off-chain with on-chain enforcement), investing/capital contributions, and ownership representation via **tokenization**.
-
-## 🚀 **Live Demo**
-
-**Frontend:** `http://localhost:3000` | **Backend:** `http://localhost:3001`
-
-### 🧪 **Quick Test**
-1. Register → Login → View Profile → Test Protected Routes
-2. Email: `test@example.com` | Password: `testpassword123`
-
-### ✅ **Features**
-- 🔐 JWT Authentication (register, login, protected routes)
-- 🗄️ PostgreSQL + Sequelize (users, KYC status)
-- 🎨 React + TypeScript (dark theme, form validation)
-- 🛡️ Security (bcrypt, CORS, rate limiting)
-- 🧪 Testing (31/38 tests passing)
-- 🔄 Session persistence with auto-redirect
+A blockchain-based platform for General Partners (GPs) and Limited Partners (LPs) that enables fund creation, KYC verification, investments, and tokenized ownership representation.
 
 ## Tech Stack
 
-- **Frontend:** React + TypeScript + React Router + `ethers`
-- **Backend:** Node.js + Express + PostgreSQL + Sequelize + JWT
-- **Smart contracts:** Solidity + Hardhat (planned)
-- **Testing:** Jest + Supertest + SQLite (backend)
-
-## Repository Structure
-
-```
-frontend/src/
-├── api/           # API client
-├── components/    # React components (forms, profile, routes)
-├── contexts/      # Authentication state
-└── App.tsx        # Main app with routing
-
-backend/src/
-├── controllers/   # Request handlers
-├── middleware/    # Express middleware
-├── models/        # Database models
-├── routes/        # API routes
-├── services/      # Business logic
-└── test/          # Test suite
-```
+- **Frontend:** React + TypeScript + ethers.js
+- **Backend:** Node.js + Express + PostgreSQL + Sequelize
+- **Blockchain:** Solidity + Hardhat + Polygon
+- **Smart Contracts:** KYCRegistry, FundToken (ERC-20)
 
 ## Prerequisites
 
-- Node.js + npm
-- **PostgreSQL** (required for authentication system)
-- (Optional) MetaMask (wallet) for the frontend demo
+- Node.js (v14+) and npm
+- PostgreSQL (v12+)
+- MetaMask browser extension
 
-## Quick Start
+## Local Setup
 
-### 1. Setup PostgreSQL Database
+### 1. Clone and Install Dependencies
+
 ```bash
-# Create database
+git clone <repository-url>
+cd tokenized-investment-funds
+npm install
+```
+
+### 2. Database Setup
+
+```bash
+# Create PostgreSQL database
 createdb tokenized_funds
 
 # Or using psql:
@@ -62,188 +37,101 @@ CREATE DATABASE tokenized_funds;
 \q
 ```
 
-### 2. Backend Setup
+### 3. Smart Contracts Setup
+
+```bash
+cd contracts
+npm install
+
+# Start local Hardhat node (keep this running)
+npx hardhat node
+
+# In a new terminal, deploy contracts
+npm run deploy:local
+```
+
+### 4. Backend Setup
+
 ```bash
 cd backend
 npm install
-cp .env.example .env  # Update DATABASE_URL with your PostgreSQL password
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env and set:
+# - DATABASE_URL with your PostgreSQL password
+# - JWT_SECRET (any random string)
+# - RPC_URL=http://127.0.0.1:8545
+# - DEPLOYER_PRIVATE_KEY (from Hardhat node output)
+
+# Start backend server
 npm run dev
 # → Backend running on http://localhost:3001
 ```
 
-**Backend `.env` configuration:**
-```env
-NODE_ENV=development
-DATABASE_URL=postgres://postgres:YOUR_PASSWORD@localhost:5432/tokenized_funds
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-PORT=3001
-```
+### 5. Frontend Setup
 
-### 3. Frontend Setup
 ```bash
 cd frontend
 npm install
+
+# Start frontend
 npm start
 # → Frontend running on http://localhost:3000
 ```
 
-### 4. Running Both Servers
-**Option 1: Separate terminals**
-```bash
-# Terminal 1 - Backend
-cd backend && npm run dev
+### 6. MetaMask Configuration
 
-# Terminal 2 - Frontend
-cd frontend && npm start
-```
+1. Open MetaMask and add a custom network:
+   - **Network Name:** Hardhat Local
+   - **RPC URL:** http://127.0.0.1:8545
+   - **Chain ID:** 1337
+   - **Currency Symbol:** ETH
 
-**Option 2: From root (requires concurrently)**
-```bash
-npm install  # Install concurrently
-npm run dev  # Runs both backend and frontend
-```
+2. Import a test account using a private key from the Hardhat node output
 
-## 🚀 Current Features
+### 7. Demo Users
 
-### ✅ **Authentication**
-- Complete registration/login forms with validation
-- JWT-based protected routes with auto-redirect
-- User profile dashboard with KYC status
-- Session persistence across page refreshes
+The platform seeds demo users on first run:
+- **GP (Fund Manager):** `gp@demo.com` / `password123`
+- **LP (Investor):** `lp@demo.com` / `password123`
+- **LP2 (Investor):** `lp2@demo.com` / `password123`
 
-### ✅ **KYC Verification**
-- File upload system with multer (JPEG, PNG, PDF)
-- Document storage and validation
-- Real-time status polling (pending → submitted → approved/rejected)
-- Mock approval workflow (30s delay for demo)
+## Features
 
-### ✅ **Fund Management**
-- Fund creation form (GP only)
-- Fund listing with filters (status, risk level)
-- Complete CRUD operations
-- Investment tracking and portfolio management
+- **Authentication & Authorization:** JWT-based auth with role-based access (GP/LP)
+- **KYC Verification:** Document upload with on-chain enforcement via smart contracts
+- **Fund Management:** Create, browse, and manage investment funds
+- **Investment Flow:** Submit investments with wallet validation and token minting
+- **Tokenization:** ERC-20 tokens representing fund ownership
+- **Portfolio Tracking:** View investments and on-chain token balances
+- **Multi-Fund Support:** Each fund has its own token contract
 
-### ✅ **Backend**
-- PostgreSQL + Sequelize (Users, KYC, Funds, Investments)
-- File upload middleware with security
-- Role-based access control (GP/LP)
-- JWT middleware & security headers
-- Comprehensive API testing (31/38 tests)
-
-### ✅ **Frontend**
-- React + TypeScript with full type safety
-- Context API for auth state management
-- Dark theme UI with responsive design
-- Fund listing and creation interfaces
-- Real-time KYC status updates
-
-### ✅ **Smart Contracts** (Ready)
-- KYCRegistry & FundToken contracts implemented
-
-## 📅 Development Timeline
-
-### 🎯 **Jan 4, 2026 - Production Auth System**
-- Complete authentication UI with validation
-- Protected routes with auto-redirect
-- User profile dashboard with KYC status
-- Full TypeScript implementation
-- Session persistence & navigation logic
-
-### 🔧 **Dec 26, 2025 - Backend Foundation**
-- Express server with security middleware
-- JWT authentication + bcrypt hashing
-- PostgreSQL + Sequelize models
-- Comprehensive test suite (31/38 tests)
-
-### 🎨 **Dec 26, 2025 - Frontend Foundation**
-- React + TypeScript setup
-- MetaMask integration
-- Dark theme UI design
-
-### 🔗 **Smart Contracts**
-- **KYCRegistry**: On-chain identity verification
-- **FundToken**: Permissioned ERC-20 with KYC enforcement
-- **OpenZeppelin**: Secure contract patterns
-
-## 📡 **API Endpoints**
-
-### 🔐 **Authentication**
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User authentication  
-- `GET /auth/me` - Get current user (JWT required)
-- `GET /health` - Health check
-
-### 📋 **KYC**
-- `POST /kyc/submit` - Submit KYC documents (multipart/form-data)
-- `GET /kyc/status` - Get KYC verification status
-- `POST /kyc/webhook` - KYC provider webhook (internal)
-
-### 💼 **Funds**
-- `POST /funds` - Create new fund (GP only)
-- `GET /funds` - List all funds (with filters)
-- `GET /funds/my-funds` - Get user's funds (GP: created, LP: invested)
-- `GET /funds/:id` - Get fund details
-- `PUT /funds/:id` - Update fund (GP only)
-- `DELETE /funds/:id` - Delete draft fund (GP only)
-
-### 💰 **Investments**
-- `POST /investments` - Create investment (KYC required)
-- `GET /investments` - List investments
-- `GET /investments/:id` - Get investment details
-- `PUT /investments/:id/status` - Update investment status (GP only)
-
-**Response Format:**
-```json
-{
-  "data": {
-    "user": { "id": "uuid", "email": "...", "role": "LP|GP", "kyc": {...} },
-    "token": "jwt" (auth only)
-  }
-}
-```
-
-## 🧪 Testing
+## Testing
 
 ```bash
+# Backend tests
 cd backend
-npm test                    # Run all tests
-npm run test:watch          # Watch mode
-npm run test:coverage       # Coverage report
-npm run test:auth           # Auth tests only
+npm test
+
+# Run specific test suites
+npm run test:auth
+npm run test:coverage
 ```
 
-**Features:** SQLite in-memory DB, automatic setup/teardown, comprehensive coverage (31/38 tests passing)
+## Documentation
 
-## 🎯 **Next Steps**
+For detailed information, see:
+- `docs/DEPLOYMENT.md` - Production deployment guide
+- `docs/READMEDOCS.md` - Complete documentation index
+- `docs/PHASE_*.md` - Phase-specific implementation details
 
-### 🔗 **Priority 1: Smart Contract Integration**
-- Deploy KYCRegistry and FundToken to local Hardhat network
-- Create blockchain service layer in backend
-- Integrate ethers.js for on-chain KYC verification
-- Implement token minting/transfer for investments
-- Add MetaMask wallet connection flow
+## Project Structure
 
-### 💰 **Priority 2: Investment Flow**
-- Build investment submission UI with amount input
-- Connect investment creation to fund details page
-- Add portfolio dashboard for LPs (holdings, returns)
-- Create transaction history view
-- Implement investment confirmation flow
-
-### 🎨 **Priority 3: Enhanced UI/UX**
-- Add navigation menu/header component
-- Create fund detail page with investment interface
-- Build GP dashboard for fund management
-- Add charts and visualizations for fund performance
-- Mobile responsive improvements
-
-### 🧪 **Priority 4: Testing & Production**
-- Write tests for new fund/investment features
-- Add integration tests for file uploads
-- Improve error handling and validation
-- Add deployment configuration
-- Security audit and optimization
-
-## Notes
-
-- Dependencies may report security warnings because some packages are older (CRA / WalletConnect v1). This is acceptable for a prototype demo; we can modernize later.
+```
+├── contracts/          # Solidity smart contracts
+├── backend/           # Express API server
+├── frontend/          # React TypeScript app
+├── shared/            # Shared contract artifacts
+└── docs/              # Documentation
+```
