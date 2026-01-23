@@ -119,13 +119,6 @@ npm run test:auth
 npm run test:coverage
 ```
 
-## Documentation
-
-For detailed information, see:
-- `docs/DEPLOYMENT.md` - Production deployment guide
-- `docs/READMEDOCS.md` - Complete documentation index
-- `docs/PHASE_*.md` - Phase-specific implementation details
-
 ## Project Structure
 
 ```
@@ -133,5 +126,4 @@ For detailed information, see:
 ├── backend/           # Express API server
 ├── frontend/          # React TypeScript app
 ├── shared/            # Shared contract artifacts
-└── docs/              # Documentation
 ```
