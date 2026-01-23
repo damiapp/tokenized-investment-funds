@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fundsApi, investmentsApi, type Fund } from "../api/funds";
 import { kycApi, type KYCStatus } from "../api/kyc";
 import { useAuth } from "../contexts/AuthContext";
+import { useWallet } from "../contexts/WalletContext";
 
 export function FundDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { address } = useWallet();
 
   const [fund, setFund] = useState<Fund | null>(null);
   const [kycStatus, setKycStatus] = useState<KYCStatus | null>(null);
@@ -54,6 +56,18 @@ export function FundDetail() {
     e.preventDefault();
     if (!fund || !investAmount) return;
 
+    // Check if wallet is connected
+    if (!address) {
+      setInvestError("Please connect your wallet before investing. Tokens will be minted to your wallet address.");
+      return;
+    }
+
+    // Check if wallet address matches user's registered wallet
+    if (user?.walletAddress && user.walletAddress.toLowerCase() !== address.toLowerCase()) {
+      setInvestError("Connected wallet does not match your registered wallet address. Please connect the correct wallet or update your profile.");
+      return;
+    }
+
     setInvestError(null);
     setInvestSuccess(null);
     setIsInvesting(true);
@@ -63,7 +77,7 @@ export function FundDetail() {
         fundId: fund.id,
         amount: parseFloat(investAmount),
       });
-      setInvestSuccess("Investment submitted successfully!");
+      setInvestSuccess("Investment submitted successfully! Tokens will be minted to your wallet once the GP confirms.");
       setInvestAmount("");
       fetchFund(); // Refresh fund data
     } catch (err) {
@@ -652,24 +666,56 @@ export function FundDetail() {
                     </div>
                   </div>
 
+                  {!address && (
+                    <div
+                      style={{
+                        backgroundColor: "#f0883e26",
+                        border: "1px solid #f0883e",
+                        borderRadius: 6,
+                        padding: 12,
+                        marginBottom: 16,
+                        color: "#f0883e",
+                        fontSize: 14,
+                      }}
+                    >
+                      ⚠️ Please connect your wallet to invest
+                    </div>
+                  )}
+                  {address && user?.walletAddress && address.toLowerCase() !== user.walletAddress.toLowerCase() && (
+                    <div
+                      style={{
+                        backgroundColor: "#f0883e26",
+                        border: "1px solid #f0883e",
+                        borderRadius: 6,
+                        padding: 12,
+                        marginBottom: 16,
+                        color: "#f0883e",
+                        fontSize: 14,
+                      }}
+                    >
+                      ⚠️ Connected wallet does not match your registered wallet
+                    </div>
+                  )}
                   <button
                     type="submit"
                     disabled={
                       isInvesting ||
                       !investAmount ||
+                      !address ||
+                      (user?.walletAddress && address.toLowerCase() !== user.walletAddress.toLowerCase()) ||
                       parseFloat(investAmount) < parseFloat(fund.minimumInvestment) ||
                       parseFloat(investAmount) > remainingCapacity
                     }
                     style={{
                       width: "100%",
-                      backgroundColor: canInvest ? "#238636" : "#21262d",
+                      backgroundColor: canInvest && address && (!user?.walletAddress || address.toLowerCase() === user.walletAddress.toLowerCase()) ? "#238636" : "#21262d",
                       border: "none",
                       borderRadius: 6,
-                      color: canInvest ? "#ffffff" : "#8b949e",
+                      color: canInvest && address && (!user?.walletAddress || address.toLowerCase() === user.walletAddress.toLowerCase()) ? "#ffffff" : "#8b949e",
                       padding: "12px 16px",
                       fontSize: 14,
                       fontWeight: 500,
-                      cursor: canInvest && !isInvesting ? "pointer" : "not-allowed",
+                      cursor: canInvest && !isInvesting && address && (!user?.walletAddress || address.toLowerCase() === user.walletAddress.toLowerCase()) ? "pointer" : "not-allowed",
                       opacity: isInvesting ? 0.7 : 1,
                     }}
                   >

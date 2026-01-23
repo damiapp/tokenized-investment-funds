@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useWallet } from "../contexts/WalletContext";
 import { KYCForm } from "./KYCForm";
 import { KYCStatus } from "./KYCStatus";
 
 export function UserProfile() {
   const { user, logout } = useAuth();
+  const { address: connectedWallet } = useWallet();
   const navigate = useNavigate();
   const [showKYCForm, setShowKYCForm] = useState(false);
 
@@ -75,11 +77,35 @@ export function UserProfile() {
                   {user.role === "LP" ? "Limited Partner (Investor)" : "General Partner (Fund Manager)"}
                 </div>
               </div>
-              <div>
-                <span style={{ color: "#8b949e", fontSize: 14 }}>Wallet Address:</span>
-                <div style={{ color: "#e6edf7", fontSize: 16, marginTop: 4 }}>
-                  {user.walletAddress || "Not connected"}
+              <div style={{ marginBottom: 12 }}>
+                <span style={{ color: "#8b949e", fontSize: 14 }}>Registered Wallet:</span>
+                <div style={{ color: "#e6edf7", fontSize: 16, marginTop: 4, fontFamily: "monospace" }}>
+                  {user.walletAddress || "Not set"}
                 </div>
+              </div>
+              <div>
+                <span style={{ color: "#8b949e", fontSize: 14 }}>Connected Wallet:</span>
+                <div style={{ 
+                  color: connectedWallet ? "#238636" : "#8b949e", 
+                  fontSize: 16, 
+                  marginTop: 4,
+                  fontFamily: "monospace"
+                }}>
+                  {connectedWallet || "Not connected"}
+                </div>
+                {connectedWallet && user.walletAddress && 
+                 connectedWallet.toLowerCase() !== user.walletAddress.toLowerCase() && (
+                  <div style={{ 
+                    color: "#f0883e", 
+                    fontSize: 12, 
+                    marginTop: 4,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4
+                  }}>
+                    ⚠️ Connected wallet does not match registered wallet
+                  </div>
+                )}
               </div>
             </div>
           </div>

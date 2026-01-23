@@ -36,38 +36,29 @@ export function MyInvestments() {
   const [statusFilter, setStatusFilter] = useState<string>("");
 
   useEffect(() => {
-    fetchPortfolio();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (statusFilter) {
-      fetchFilteredInvestments();
-    } else {
-      fetchPortfolio();
-    }
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
-  const fetchPortfolio = async () => {
+  const fetchData = async () => {
     try {
       setIsLoading(true);
-      const response = await investmentsApi.getPortfolio();
-      setInvestments(response.data.investments);
-      setSummary(response.data.summary);
-      setOnChain(response.data.onChain);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load portfolio");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchFilteredInvestments = async () => {
-    try {
-      setIsLoading(true);
-      const response = await investmentsApi.getAll({ status: statusFilter });
-      setInvestments(response.data.investments);
+      
+      // Always fetch portfolio for on-chain data and summary
+      const portfolioResponse = await investmentsApi.getPortfolio();
+      setSummary(portfolioResponse.data.summary);
+      setOnChain(portfolioResponse.data.onChain);
+      
+      // Fetch investments based on filter
+      if (statusFilter) {
+        // Specific status filter
+        const response = await investmentsApi.getAll({ status: statusFilter });
+        setInvestments(response.data.investments);
+      } else {
+        // "All" - fetch all investments without status filter
+        const response = await investmentsApi.getAll({});
+        setInvestments(response.data.investments);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load investments");
     } finally {

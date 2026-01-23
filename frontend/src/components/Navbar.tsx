@@ -50,17 +50,17 @@ export function Navbar() {
         <Link
           to="/profile"
           style={{
-            color: "#e6edf7",
             textDecoration: "none",
-            fontSize: 18,
-            fontWeight: 700,
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          <span style={{ fontSize: 24 }}>💰</span>
-          TokenFunds
+          <img 
+            src="/logo.png" 
+            alt="Tokenize Invest" 
+            style={{ height: 40 }}
+          />
         </Link>
 
         {/* Navigation Links */}

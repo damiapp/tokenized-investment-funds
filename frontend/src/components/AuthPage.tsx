@@ -52,10 +52,12 @@ export function AuthPage() {
           maxWidth: 400,
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <h1 style={{ color: "#e6edf7", fontSize: 24, marginBottom: 8 }}>
-            Tokenized Investment Funds
-          </h1>
+        <div style={{ textAlign: "center", marginBottom: 25 }}>
+          <img 
+            src="/logo.png" 
+            alt="Tokenize Invest" 
+            style={{ width: "100%", maxWidth: 400, marginBottom: 2 }}
+          />
           <p style={{ color: "#8b949e", fontSize: 14 }}>
             {isLogin ? "Welcome back! Please login to continue." : "Create an account to get started."}
           </p>
