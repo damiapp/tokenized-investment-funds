@@ -31,7 +31,7 @@ async function main() {
   console.log("✓ ComplianceModule deployed to:", complianceModule.address);
 
   // Deploy FundFactory
-  console.log("\n[4/5] Deploying FundFactory...");
+  console.log("\n[4/6] Deploying FundFactory...");
   const FundFactory = await hre.ethers.getContractFactory("FundFactory");
   const fundFactory = await FundFactory.deploy(
     identityRegistry.address,
@@ -40,8 +40,15 @@ async function main() {
   await fundFactory.deployed();
   console.log("✓ FundFactory deployed to:", fundFactory.address);
 
+  // Deploy InvestmentContract
+  console.log("\n[5/6] Deploying InvestmentContract...");
+  const InvestmentContract = await hre.ethers.getContractFactory("InvestmentContract");
+  const investmentContract = await InvestmentContract.deploy(identityRegistry.address);
+  await investmentContract.deployed();
+  console.log("✓ InvestmentContract deployed to:", investmentContract.address);
+
   // Deploy sample FundTokenERC3643 (for demo purposes)
-  console.log("\n[5/5] Deploying Demo FundTokenERC3643...");
+  console.log("\n[6/6] Deploying Demo FundTokenERC3643...");
   const FundTokenERC3643 = await hre.ethers.getContractFactory("FundTokenERC3643");
   const fundToken = await FundTokenERC3643.deploy(
     "Demo Fund Token",
@@ -106,6 +113,9 @@ async function main() {
       FundFactory: {
         address: fundFactory.address,
       },
+      InvestmentContract: {
+        address: investmentContract.address,
+      },
       FundTokenERC3643: {
         address: fundToken.address,
         name: "Demo Fund Token",
@@ -135,6 +145,7 @@ async function main() {
   const trustedIssuersRegistryArtifact = await hre.artifacts.readArtifact("TrustedIssuersRegistry");
   const complianceModuleArtifact = await hre.artifacts.readArtifact("ComplianceModule");
   const fundFactoryArtifact = await hre.artifacts.readArtifact("FundFactory");
+  const investmentContractArtifact = await hre.artifacts.readArtifact("InvestmentContract");
   const fundTokenArtifact = await hre.artifacts.readArtifact("FundTokenERC3643");
 
   const sharedContracts = {
@@ -158,6 +169,10 @@ async function main() {
         address: fundFactory.address,
         abi: fundFactoryArtifact.abi,
       },
+      InvestmentContract: {
+        address: investmentContract.address,
+        abi: investmentContractArtifact.abi,
+      },
       FundTokenERC3643: {
         address: fundToken.address,
         abi: fundTokenArtifact.abi,
@@ -174,12 +189,9 @@ async function main() {
   console.log("TrustedIssuersRegistry:  ", trustedIssuersRegistry.address);
   console.log("ComplianceModule:        ", complianceModule.address);
   console.log("FundFactory:             ", fundFactory.address);
+  console.log("InvestmentContract:      ", investmentContract.address);
   console.log("Demo FundTokenERC3643:   ", fundToken.address);
-  console.log("\nNext steps:");
-  console.log("1. Update backend to use FundFactory for fund creation");
-  console.log("2. Register user identities via IdentityRegistry");
-  console.log("3. Configure compliance rules per fund");
-  console.log("4. Use FundFactory.createFund() to deploy new fund tokens");
+  console.log("\nSee README.md for post-deployment integration steps.");
 }
 
 main().catch((err) => {

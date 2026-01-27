@@ -1,10 +1,17 @@
 const { User, KycStatus, Fund, Investment } = require("../models");
 const { hashPassword } = require("../services/password");
+const contractService = require("../services/contractService");
 
 async function seedDemoData() {
   console.log("🌱 Starting demo data seed...\n");
 
   try {
+    // Initialize contract service for GP approval
+    if (!contractService.isInitialized()) {
+      console.log("Initializing contract service...");
+      await contractService.initialize();
+    }
+
     // Create GP user
     console.log("Creating GP user...");
     const gpPassword = await hashPassword("password123");
@@ -21,6 +28,22 @@ async function seedDemoData() {
       console.log("  ✅ GP created: gp@demo.com / password123");
     } else {
       console.log("  ⏭️  GP already exists: gp@demo.com");
+    }
+
+    // Auto-approve GP in FundFactory
+    if (contractService.isInitialized() && gp.walletAddress) {
+      try {
+        const isApproved = await contractService.isApprovedGP(gp.walletAddress);
+        if (!isApproved) {
+          console.log("  → Auto-approving GP in FundFactory...");
+          await contractService.approveGP(gp.walletAddress);
+          console.log("  ✅ GP approved in FundFactory");
+        } else {
+          console.log("  ✓ GP already approved in FundFactory");
+        }
+      } catch (error) {
+        console.warn("  ⚠️  Could not auto-approve GP in FundFactory:", error.message);
+      }
     }
 
     // Create LP user with approved KYC

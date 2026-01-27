@@ -309,6 +309,26 @@ const fundController = {
         return { success: false, reason: "contract_service_not_initialized" };
       }
 
+      // Get GP wallet address
+      const gp = await fund.getGeneralPartner();
+      if (!gp?.walletAddress) {
+        console.warn("Cannot deploy token: GP has no wallet address");
+        return { success: false, reason: "gp_no_wallet" };
+      }
+
+      // Auto-approve GP if not already approved (for demo purposes)
+      try {
+        const isApproved = await contractService.isApprovedGP(gp.walletAddress);
+        if (!isApproved) {
+          console.log(`Auto-approving GP ${gp.walletAddress} in FundFactory...`);
+          await contractService.approveGP(gp.walletAddress);
+          console.log(`✓ GP auto-approved in FundFactory`);
+        }
+      } catch (error) {
+        console.warn("Could not auto-approve GP:", error.message);
+        return { success: false, reason: "gp_approval_failed", error: error.message };
+      }
+
       // Generate token name and symbol from fund name
       const tokenName = `${fund.name} Token`;
       const tokenSymbol = fund.tokenSymbol || fund.name.substring(0, 4).toUpperCase().replace(/\s/g, "");

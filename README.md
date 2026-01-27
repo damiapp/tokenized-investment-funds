@@ -7,7 +7,7 @@ A blockchain-based platform for General Partners (GPs) and Limited Partners (LPs
 - **Frontend:** React + TypeScript + ethers.js
 - **Backend:** Node.js + Express + PostgreSQL + Sequelize
 - **Blockchain:** Solidity + Hardhat + Polygon
-- **Smart Contracts:** KYCRegistry, FundToken (ERC-20)
+- **Smart Contracts:** ERC-3643 Security Tokens (IdentityRegistry, ComplianceModule, FundFactory, InvestmentContract)
 
 ## Prerequisites
 
@@ -100,12 +100,42 @@ The platform seeds demo users on first run:
 ## Features
 
 - **Authentication & Authorization:** JWT-based auth with role-based access (GP/LP)
-- **KYC Verification:** Document upload with on-chain enforcement via smart contracts
-- **Fund Management:** Create, browse, and manage investment funds
-- **Investment Flow:** Submit investments with wallet validation and token minting
-- **Tokenization:** ERC-20 tokens representing fund ownership
+- **KYC Verification:** On-chain identity verification via ERC-3643 IdentityRegistry
+- **Fund Management:** Create, browse, and manage investment funds via FundFactory
+- **Investment Flow:** On-chain investment tracking with InvestmentContract
+- **Tokenization:** ERC-3643 security tokens with compliance enforcement
 - **Portfolio Tracking:** View investments and on-chain token balances
-- **Multi-Fund Support:** Each fund has its own token contract
+- **Multi-Fund Support:** Each fund has its own ERC-3643 token contract
+- **Compliance:** Automated compliance checks via ComplianceModule
+
+## Post-Deployment Integration Steps
+
+After deploying contracts with `npx hardhat run scripts/deploy.js --network localhost`, follow these steps:
+
+### 1. Update Backend for InvestmentContract
+- Backend automatically reads contract addresses from `shared/contracts/deployed.json`
+- InvestmentContract methods are available in `contractService.js`
+- Investment tracking is now on-chain via InvestmentContract
+
+### 2. Register User Identities
+- Users must be registered in IdentityRegistry before investing
+- Admin can register identities via backend API: `POST /identity/register`
+- Or use Hardhat script: `npx hardhat run scripts/registerIdentity.js`
+
+### 3. Configure Compliance Rules
+- Set compliance rules per fund via ComplianceModule
+- Configure max holders, country restrictions, holding periods
+- Use backend API: `POST /compliance/configure`
+
+### 4. Create Funds via FundFactory
+- GPs create funds which automatically deploy via FundFactory
+- Each fund gets its own ERC-3643 token contract
+- GP must be approved in FundFactory (auto-approved in demo)
+
+### 5. Record Investments
+- Investments are recorded on-chain via InvestmentContract
+- Backend automatically syncs with blockchain events
+- Investment status tracked: Pending → Confirmed → Tokens Minted
 
 ## Testing
 
