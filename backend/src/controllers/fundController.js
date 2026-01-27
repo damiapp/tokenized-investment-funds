@@ -296,7 +296,7 @@ const fundController = {
     }
   },
 
-  // Deploy a token contract for a fund
+  // Deploy a token contract for a fund via FundFactory
   async deployTokenForFund(fund) {
     try {
       // Initialize contract service if needed
@@ -313,11 +313,23 @@ const fundController = {
       const tokenName = `${fund.name} Token`;
       const tokenSymbol = fund.tokenSymbol || fund.name.substring(0, 4).toUpperCase().replace(/\s/g, "");
 
-      const result = await contractService.deployFundToken(tokenName, tokenSymbol);
+      // Use FundFactory to deploy the token
+      const result = await contractService.deployFundViaFactory(
+        tokenName,
+        tokenSymbol,
+        fund.targetAmount || 1000000, // Default target amount if not set
+        fund.minimumInvestment || 1000 // Default minimum investment if not set
+      );
+
+      // Update fund with on-chain fund ID
+      await fund.update({
+        onChainFundId: result.fundId,
+      });
 
       return {
         success: true,
-        address: result.address,
+        address: result.tokenAddress,
+        fundId: result.fundId,
         name: tokenName,
         symbol: tokenSymbol,
         txHash: result.txHash,
@@ -379,6 +391,130 @@ const fundController = {
         error: {
           code: "INTERNAL",
           message: "Failed to retrieve funds",
+        },
+      });
+    }
+  },
+
+  // Discover funds from on-chain FundFactory
+  async discoverFunds(req, res) {
+    try {
+      const { offset = 0, limit = 10 } = req.query;
+
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return res.status(503).json({
+          error: {
+            code: "SERVICE_UNAVAILABLE",
+            message: "Contract service not initialized",
+          },
+        });
+      }
+
+      const funds = await contractService.getActiveFunds(
+        parseInt(offset),
+        parseInt(limit)
+      );
+
+      const totalCount = await contractService.getFundCount();
+
+      res.status(200).json({
+        data: {
+          funds,
+          count: funds.length,
+          totalCount,
+          offset: parseInt(offset),
+          limit: parseInt(limit),
+        },
+      });
+    } catch (error) {
+      console.error("Discover funds error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to discover funds",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  // Get on-chain fund by ID
+  async getOnChainFund(req, res) {
+    try {
+      const { fundId } = req.params;
+
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return res.status(503).json({
+          error: {
+            code: "SERVICE_UNAVAILABLE",
+            message: "Contract service not initialized",
+          },
+        });
+      }
+
+      const fund = await contractService.getOnChainFund(parseInt(fundId));
+
+      res.status(200).json({
+        data: { fund },
+      });
+    } catch (error) {
+      console.error("Get on-chain fund error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get on-chain fund",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  // Get funds by GP address
+  async getFundsByGP(req, res) {
+    try {
+      const { gpAddress } = req.params;
+
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return res.status(503).json({
+          error: {
+            code: "SERVICE_UNAVAILABLE",
+            message: "Contract service not initialized",
+          },
+        });
+      }
+
+      const fundIds = await contractService.getFundsByGP(gpAddress);
+
+      // Fetch full fund details for each ID
+      const funds = await Promise.all(
+        fundIds.map(id => contractService.getOnChainFund(id))
+      );
+
+      res.status(200).json({
+        data: {
+          funds,
+          count: funds.length,
+        },
+      });
+    } catch (error) {
+      console.error("Get funds by GP error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get funds by GP",
+          details: error.message,
         },
       });
     }

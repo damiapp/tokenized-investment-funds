@@ -415,7 +415,7 @@ const investmentController = {
     }
   },
 
-  // Mint fund tokens for a confirmed investment
+  // Mint fund tokens for a confirmed investment (ERC-3643 compliant)
   async mintTokensForInvestment(investment) {
     try {
       const lp = investment.limitedPartner;
@@ -436,9 +436,39 @@ const investmentController = {
         return { success: false, reason: "contract_service_not_initialized" };
       }
 
+      // ERC-3643: Check if investor identity is verified
+      const isVerified = await contractService.isKycVerified(lp.walletAddress);
+      if (!isVerified) {
+        console.warn(`Cannot mint tokens: LP ${lp.walletAddress} identity not verified on-chain`);
+        return { success: false, reason: "identity_not_verified" };
+      }
+
       // Calculate tokens to issue (1 token = $1 for simplicity)
       // In production, this would use the fund's token price
       const tokensToMint = parseFloat(investment.amount);
+
+      // ERC-3643: Check compliance before minting (if fund has specific token contract)
+      if (fund?.contractAddress) {
+        try {
+          const compliance = await contractService.checkTransferCompliance(
+            fund.contractAddress,
+            '0x0000000000000000000000000000000000000000', // minting from zero address
+            lp.walletAddress,
+            tokensToMint
+          );
+
+          if (!compliance.canTransfer) {
+            console.warn(`Cannot mint tokens: Compliance check failed - ${compliance.reason}`);
+            return { 
+              success: false, 
+              reason: "compliance_failed", 
+              complianceReason: compliance.reason 
+            };
+          }
+        } catch (complianceError) {
+          console.warn(`Compliance check error (proceeding anyway): ${complianceError.message}`);
+        }
+      }
 
       let txHash;
       

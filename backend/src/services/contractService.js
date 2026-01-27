@@ -6,7 +6,10 @@ class ContractService {
   constructor() {
     this.provider = null;
     this.signer = null;
-    this.kycRegistry = null;
+    this.identityRegistry = null;
+    this.complianceModule = null;
+    this.trustedIssuersRegistry = null;
+    this.fundFactory = null;
     this.fundToken = null;
     this.initialized = false;
     this.networkInfo = null;
@@ -58,25 +61,46 @@ class ContractService {
       // Log signer address
       console.log("Signer address:", this.signer.address);
 
-      // Initialize contracts
-      const { KYCRegistry, FundToken } = deployed.contracts;
+      // Initialize ERC-3643 contracts
+      const { IdentityRegistry, ComplianceModule, TrustedIssuersRegistry, FundFactory, FundTokenERC3643 } = deployed.contracts;
 
-      this.kycRegistry = new ethers.Contract(
-        KYCRegistry.address,
-        KYCRegistry.abi,
+      this.identityRegistry = new ethers.Contract(
+        IdentityRegistry.address,
+        IdentityRegistry.abi,
+        this.signer
+      );
+
+      this.complianceModule = new ethers.Contract(
+        ComplianceModule.address,
+        ComplianceModule.abi,
+        this.signer
+      );
+
+      this.trustedIssuersRegistry = new ethers.Contract(
+        TrustedIssuersRegistry.address,
+        TrustedIssuersRegistry.abi,
+        this.signer
+      );
+
+      this.fundFactory = new ethers.Contract(
+        FundFactory.address,
+        FundFactory.abi,
         this.signer
       );
 
       this.fundToken = new ethers.Contract(
-        FundToken.address,
-        FundToken.abi,
+        FundTokenERC3643.address,
+        FundTokenERC3643.abi,
         this.signer
       );
 
       this.initialized = true;
-      console.log("Contract service initialized");
-      console.log("  KYCRegistry:", KYCRegistry.address);
-      console.log("  FundToken:", FundToken.address);
+      console.log("Contract service initialized (ERC-3643 + FundFactory)");
+      console.log("  IdentityRegistry:", IdentityRegistry.address);
+      console.log("  ComplianceModule:", ComplianceModule.address);
+      console.log("  TrustedIssuersRegistry:", TrustedIssuersRegistry.address);
+      console.log("  FundFactory:", FundFactory.address);
+      console.log("  FundTokenERC3643:", FundTokenERC3643.address);
     } catch (error) {
       console.error("Failed to initialize contract service:", error.message);
     }
@@ -191,16 +215,47 @@ class ContractService {
     if (!this.initialized) {
       throw new Error("Contract service not initialized");
     }
-    return this.kycRegistry.isVerified(walletAddress);
+    return this.identityRegistry.isVerified(walletAddress);
+  }
+
+  async registerIdentity(walletAddress, countryCode = 840) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+    const tx = await this.identityRegistry.registerIdentity(walletAddress, countryCode);
+    await tx.wait();
+    return tx.hash;
+  }
+
+  async addIdentityClaim(walletAddress, claimTopic) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+    const tx = await this.identityRegistry.addClaim(walletAddress, claimTopic);
+    await tx.wait();
+    return tx.hash;
   }
 
   async setKycVerified(walletAddress, verified) {
     if (!this.initialized) {
       throw new Error("Contract service not initialized");
     }
-    const tx = await this.kycRegistry.setVerified(walletAddress, verified);
-    await tx.wait();
-    return tx.hash;
+    
+    const CLAIM_KYC_VERIFIED = 2;
+    
+    if (verified) {
+      const isRegistered = await this.identityRegistry.isVerified(walletAddress);
+      if (!isRegistered) {
+        await this.registerIdentity(walletAddress, 840);
+      }
+      const tx = await this.identityRegistry.addClaim(walletAddress, CLAIM_KYC_VERIFIED);
+      await tx.wait();
+      return tx.hash;
+    } else {
+      const tx = await this.identityRegistry.removeClaim(walletAddress, CLAIM_KYC_VERIFIED);
+      await tx.wait();
+      return tx.hash;
+    }
   }
 
   async mintFundTokens(toAddress, amount) {
@@ -233,15 +288,16 @@ class ContractService {
     }
 
     try {
-      // Load FundToken bytecode from artifacts
+      // Load deployed contract addresses
       const deployedPath = path.join(__dirname, "../../../shared/contracts/deployed.json");
       const deployed = JSON.parse(fs.readFileSync(deployedPath, "utf8"));
       
-      // Get the KYCRegistry address
-      const kycRegistryAddress = deployed.contracts.KYCRegistry.address;
+      // Get the IdentityRegistry and ComplianceModule addresses
+      const identityRegistryAddress = deployed.contracts.IdentityRegistry.address;
+      const complianceModuleAddress = deployed.contracts.ComplianceModule.address;
       
-      // Load the FundToken artifact for bytecode
-      const artifactPath = path.join(__dirname, "../../../contracts/artifacts/contracts/FundToken.sol/FundToken.json");
+      // Load the FundTokenERC3643 artifact for bytecode
+      const artifactPath = path.join(__dirname, "../../../contracts/artifacts/contracts/FundTokenERC3643.sol/FundTokenERC3643.json");
       const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
       
       // Create contract factory
@@ -251,12 +307,33 @@ class ContractService {
         this.signer
       );
 
-      // Deploy the contract
-      console.log(`Deploying FundToken: ${name} (${symbol})...`);
-      const contract = await factory.deploy(name, symbol, kycRegistryAddress);
+      // Deploy the ERC-3643 token
+      console.log(`Deploying FundTokenERC3643: ${name} (${symbol})...`);
+      const contract = await factory.deploy(
+        name,
+        symbol,
+        identityRegistryAddress,
+        complianceModuleAddress
+      );
       await contract.deployed();
       
-      console.log(`FundToken deployed to: ${contract.address}`);
+      console.log(`FundTokenERC3643 deployed to: ${contract.address}`);
+      
+      // Enable compliance restrictions for this token
+      console.log(`Enabling compliance for ${contract.address}...`);
+      const tx1 = await this.complianceModule.enableRestrictions(contract.address);
+      await tx1.wait();
+      
+      // Set default max holders
+      const tx2 = await this.complianceModule.setMaxHolders(contract.address, 100);
+      await tx2.wait();
+      
+      // Allow USA by default
+      const tx3 = await this.complianceModule.allowCountry(contract.address, 840);
+      await tx3.wait();
+      
+      console.log(`Compliance configured for ${contract.address}`);
+      
       return {
         address: contract.address,
         name,
@@ -264,7 +341,7 @@ class ContractService {
         txHash: contract.deployTransaction.hash,
       };
     } catch (error) {
-      console.error("Failed to deploy FundToken:", error.message);
+      console.error("Failed to deploy FundTokenERC3643:", error.message);
       throw error;
     }
   }
@@ -297,9 +374,182 @@ class ContractService {
     return {
       network: deployed.network,
       chainId: deployed.chainId,
-      kycRegistry: deployed.contracts.KYCRegistry.address,
-      fundToken: deployed.contracts.FundToken.address,
+      standard: deployed.standard || "ERC-3643",
+      identityRegistry: deployed.contracts.IdentityRegistry.address,
+      complianceModule: deployed.contracts.ComplianceModule.address,
+      trustedIssuersRegistry: deployed.contracts.TrustedIssuersRegistry.address,
+      fundToken: deployed.contracts.FundTokenERC3643.address,
     };
+  }
+
+  async configureCompliance(tokenAddress, config) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const txHashes = [];
+
+    if (config.maxHolders) {
+      const tx = await this.complianceModule.setMaxHolders(tokenAddress, config.maxHolders);
+      await tx.wait();
+      txHashes.push(tx.hash);
+    }
+
+    if (config.minHoldingPeriod) {
+      const tx = await this.complianceModule.setMinHoldingPeriod(tokenAddress, config.minHoldingPeriod);
+      await tx.wait();
+      txHashes.push(tx.hash);
+    }
+
+    if (config.requireAccredited !== undefined) {
+      const tx = await this.complianceModule.setRequireAccredited(tokenAddress, config.requireAccredited);
+      await tx.wait();
+      txHashes.push(tx.hash);
+    }
+
+    if (config.allowedCountries && config.allowedCountries.length > 0) {
+      for (const country of config.allowedCountries) {
+        const tx = await this.complianceModule.allowCountry(tokenAddress, country);
+        await tx.wait();
+        txHashes.push(tx.hash);
+      }
+    }
+
+    if (config.blockedCountries && config.blockedCountries.length > 0) {
+      for (const country of config.blockedCountries) {
+        const tx = await this.complianceModule.blockCountry(tokenAddress, country);
+        await tx.wait();
+        txHashes.push(tx.hash);
+      }
+    }
+
+    return txHashes;
+  }
+
+  async checkTransferCompliance(tokenAddress, from, to, amount) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tokenContract = new ethers.Contract(
+      tokenAddress,
+      this.fundToken.interface,
+      this.provider
+    );
+
+    const [canTransfer, reason] = await tokenContract.canTransfer(from, to, ethers.utils.parseEther(amount.toString()));
+    
+    return {
+      canTransfer,
+      reason: reason || "Transfer allowed",
+    };
+  }
+
+  // FundFactory methods
+  async deployFundViaFactory(name, symbol, targetAmount, minimumInvestment) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    try {
+      const tx = await this.fundFactory.createFund(
+        name,
+        symbol,
+        ethers.utils.parseEther(targetAmount.toString()),
+        ethers.utils.parseEther(minimumInvestment.toString())
+      );
+
+      const receipt = await tx.wait();
+      const event = receipt.events.find(e => e.event === "FundCreated");
+
+      if (!event) {
+        throw new Error("FundCreated event not found in transaction receipt");
+      }
+
+      return {
+        fundId: event.args.fundId.toNumber(),
+        tokenAddress: event.args.tokenAddress,
+        gp: event.args.gp,
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error("Failed to deploy fund via factory:", error);
+      throw error;
+    }
+  }
+
+  async approveGP(gpAddress) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tx = await this.fundFactory.approveGP(gpAddress);
+    await tx.wait();
+    return tx.hash;
+  }
+
+  async isApprovedGP(gpAddress) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    return await this.fundFactory.isApprovedGP(gpAddress);
+  }
+
+  async getOnChainFund(fundId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const fund = await this.fundFactory.getFund(fundId);
+    return {
+      id: fund.id.toNumber(),
+      tokenAddress: fund.tokenAddress,
+      gp: fund.gp,
+      name: fund.name,
+      symbol: fund.symbol,
+      targetAmount: ethers.utils.formatEther(fund.targetAmount),
+      minimumInvestment: ethers.utils.formatEther(fund.minimumInvestment),
+      createdAt: fund.createdAt.toNumber(),
+      active: fund.active,
+    };
+  }
+
+  async getActiveFunds(offset = 0, limit = 10) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const funds = await this.fundFactory.getActiveFunds(offset, limit);
+    return funds.map(fund => ({
+      id: fund.id.toNumber(),
+      tokenAddress: fund.tokenAddress,
+      gp: fund.gp,
+      name: fund.name,
+      symbol: fund.symbol,
+      targetAmount: ethers.utils.formatEther(fund.targetAmount),
+      minimumInvestment: ethers.utils.formatEther(fund.minimumInvestment),
+      createdAt: fund.createdAt.toNumber(),
+      active: fund.active,
+    }));
+  }
+
+  async getFundsByGP(gpAddress) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const fundIds = await this.fundFactory.getFundsByGP(gpAddress);
+    return fundIds.map(id => id.toNumber());
+  }
+
+  async getFundCount() {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const count = await this.fundFactory.getFundCount();
+    return count.toNumber();
   }
 }
 

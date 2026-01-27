@@ -34,6 +34,8 @@ const investmentRoutes = require("./routes/investments");
 const contractRoutes = require("./routes/contracts");
 const healthRoutes = require("./routes/health");
 const transactionRoutes = require("./routes/transactions");
+const identityRoutes = require("./routes/identity");
+const complianceRoutes = require("./routes/compliance");
 
 app.use("/auth", authRoutes);
 app.use("/kyc", kycRoutes);
@@ -42,6 +44,8 @@ app.use("/investments", investmentRoutes);
 app.use("/contracts", contractRoutes);
 app.use("/health", healthRoutes);
 app.use("/transactions", transactionRoutes);
+app.use("/identity", identityRoutes);
+app.use("/compliance", complianceRoutes);
 
 
 app.use((req, res) => {

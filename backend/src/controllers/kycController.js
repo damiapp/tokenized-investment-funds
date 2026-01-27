@@ -369,7 +369,7 @@ const kycController = {
     }
   },
 
-  // Sync KYC approval status to blockchain
+  // Sync KYC approval status to blockchain (ERC-3643)
   async syncKycToBlockchain(userId) {
     try {
       // Get user's wallet address
@@ -395,9 +395,30 @@ const kycController = {
         return { success: false, reason: "contract_service_not_initialized" };
       }
 
-      // Set KYC verified on-chain
-      const txHash = await contractService.setKycVerified(user.walletAddress, true);
-      console.log(`KYC synced to blockchain for ${user.walletAddress}: tx ${txHash}`);
+      // ERC-3643: Register identity and add KYC claim
+      const CLAIM_KYC_VERIFIED = 2;
+      const countryCode = 840; // Default to USA, could be from user profile
+      
+      // Check if identity already registered
+      const isVerified = await contractService.isKycVerified(user.walletAddress);
+      
+      let txHash;
+      if (!isVerified) {
+        // Register new identity
+        console.log(`Registering identity for ${user.walletAddress} (Country: ${countryCode})...`);
+        const registerTxHash = await contractService.registerIdentity(user.walletAddress, countryCode);
+        console.log(`Identity registered: tx ${registerTxHash}`);
+        
+        // Add KYC claim
+        console.log(`Adding KYC claim for ${user.walletAddress}...`);
+        txHash = await contractService.addIdentityClaim(user.walletAddress, CLAIM_KYC_VERIFIED);
+        console.log(`KYC claim added: tx ${txHash}`);
+      } else {
+        // Identity exists, just add/update KYC claim
+        console.log(`Identity exists for ${user.walletAddress}, adding KYC claim...`);
+        txHash = await contractService.setKycVerified(user.walletAddress, true);
+        console.log(`KYC verified on-chain: tx ${txHash}`);
+      }
 
       // Update KYC status with on-chain transaction hash
       const kycStatus = await KycStatus.findOne({ where: { userId } });
@@ -408,7 +429,7 @@ const kycController = {
         });
       }
 
-      return { success: true, txHash };
+      return { success: true, txHash, identityRegistered: true };
     } catch (error) {
       console.error("Failed to sync KYC to blockchain:", error.message);
       return { success: false, reason: "blockchain_error", error: error.message };
