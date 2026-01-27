@@ -68,6 +68,11 @@ const Fund = sequelize.define(
       allowNull: true,
       comment: "Smart contract address on blockchain",
     },
+    onChainFundId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Fund ID from FundFactory contract",
+    },
     tokenSymbol: {
       type: DataTypes.STRING(10),
       allowNull: true,

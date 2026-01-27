@@ -61,6 +61,7 @@ const port = Number(process.env.PORT || 3001);
 
 // Contract service
 const contractService = require("./services/contractService");
+const eventListener = require("./services/eventListener");
 
 // Database connection and server start
 const startServer = async () => {
@@ -77,6 +78,13 @@ const startServer = async () => {
     contractService.initialize().catch((err) => {
       console.warn("Contract service initialization failed:", err.message);
     });
+
+    // Initialize event listener (non-blocking)
+    setTimeout(() => {
+      eventListener.initialize().catch((err) => {
+        console.warn("Event listener initialization failed:", err.message);
+      });
+    }, 2000); // Wait 2 seconds for contract service to initialize
 
     app.listen(port, () => {
       process.stdout.write(`Backend listening on http://localhost:${port}\n`);
