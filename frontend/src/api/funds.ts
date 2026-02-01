@@ -15,6 +15,7 @@ export interface Fund {
   status: "draft" | "active" | "closed" | "liquidated";
   fundingDeadline?: string;
   contractAddress?: string;
+  onChainFundId?: number;
   tokenSymbol?: string;
   terms?: any;
   createdAt: string;

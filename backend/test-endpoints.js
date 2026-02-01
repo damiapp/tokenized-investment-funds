@@ -63,18 +63,18 @@ async function runTests() {
         if (!lpToken) throw new Error('No token received');
     })) passed++; else failed++;
 
-    if (await testEndpoint('GET /auth/profile (GP)', async () => {
-        const response = await axios.get(`${API_URL}/auth/profile`, {
+    if (await testEndpoint('GET /auth/me (GP)', async () => {
+        const response = await axios.get(`${API_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${gpToken}` }
         });
-        if (response.data.data.user.role !== 'GP') throw new Error('Wrong role');
+        if (response.data.data.role !== 'GP') throw new Error('Wrong role');
     })) passed++; else failed++;
 
-    if (await testEndpoint('GET /auth/profile (LP)', async () => {
-        const response = await axios.get(`${API_URL}/auth/profile`, {
+    if (await testEndpoint('GET /auth/me (LP)', async () => {
+        const response = await axios.get(`${API_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${lpToken}` }
         });
-        if (response.data.data.user.role !== 'LP') throw new Error('Wrong role');
+        if (response.data.data.role !== 'LP') throw new Error('Wrong role');
     })) passed++; else failed++;
 
     // Fund Tests
@@ -126,8 +126,8 @@ async function runTests() {
     // Investment Tests
     console.log(colors.yellow + '\n--- Investment Tests ---' + colors.reset);
 
-    if (await testEndpoint('GET /investments/my-investments (LP)', async () => {
-        const response = await axios.get(`${API_URL}/investments/my-investments`, {
+    if (await testEndpoint('GET /investments/portfolio (LP)', async () => {
+        const response = await axios.get(`${API_URL}/investments/portfolio`, {
             headers: { Authorization: `Bearer ${lpToken}` }
         });
         if (!Array.isArray(response.data.data.investments)) throw new Error('No investments array');
@@ -160,8 +160,8 @@ async function runTests() {
         const response = await axios.get(`${API_URL}/portfolio/fund/${fundId}`, {
             headers: { Authorization: `Bearer ${gpToken}` }
         });
-        if (!Array.isArray(response.data.data.portfolio)) throw new Error('No portfolio array');
-        console.log(`  Found ${response.data.data.portfolio.length} portfolio companies`);
+        if (!Array.isArray(response.data.data.companies)) throw new Error('No companies array');
+        console.log(`  Found ${response.data.data.companies.length} portfolio companies`);
     })) passed++; else failed++;
 
     // KYC Tests

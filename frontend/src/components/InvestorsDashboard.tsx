@@ -10,6 +10,10 @@ interface Investor {
     walletAddress: string;
     createdAt: string;
   };
+  fund?: {
+    id: string;
+    name: string;
+  };
   amount: string;
   tokensIssued: string;
   status: string;
@@ -126,17 +130,10 @@ const InvestorsDashboard: React.FC = () => {
 
   const handleConfirmAndMint = async (investmentId: string) => {
     try {
-      // First confirm the investment
+      // Confirm investment (tokens are automatically minted by backend)
       await axios.put(
         `http://localhost:3001/investments/${investmentId}/status`,
         { status: 'confirmed' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      // Then mint tokens
-      await axios.post(
-        `http://localhost:3001/investments/${investmentId}/mint`,
-        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -445,6 +442,9 @@ const InvestorsDashboard: React.FC = () => {
                       Investor
                     </th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: '#a0a0a0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Fund
+                    </th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: '#a0a0a0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Amount
                     </th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: '#a0a0a0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -475,6 +475,11 @@ const InvestorsDashboard: React.FC = () => {
                           <div style={{ fontSize: '12px', color: '#a0a0a0' }}>
                             ID: {inv.investor.id.substring(0, 8)}...
                           </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px' }}>
+                        <div style={{ fontSize: '14px', color: '#e0e0e0' }}>
+                          {inv.fund?.name || 'N/A'}
                         </div>
                       </td>
                       <td style={{ padding: '16px' }}>

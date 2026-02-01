@@ -38,7 +38,7 @@ const PortfolioManagement: React.FC = () => {
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'add' | 'invest'>('portfolio');
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'add' | 'all'>('portfolio');
 
   // Form states
   const [companyForm, setCompanyForm] = useState({
@@ -48,12 +48,6 @@ const PortfolioManagement: React.FC = () => {
     foundedYear: new Date().getFullYear(),
   });
 
-  const [investmentForm, setInvestmentForm] = useState({
-    companyId: '',
-    amount: '',
-    equityPercentage: '',
-    valuation: '',
-  });
 
   useEffect(() => {
     fetchMyFunds();
@@ -125,7 +119,7 @@ const PortfolioManagement: React.FC = () => {
       });
       
       fetchAllCompanies();
-      setActiveTab('invest');
+      setActiveTab('portfolio');
       alert('Company registered successfully!');
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to register company');
@@ -134,45 +128,6 @@ const PortfolioManagement: React.FC = () => {
     }
   };
 
-  const handleRecordInvestment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFund?.onChainFundId) {
-      setError('Please select a fund with on-chain ID');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      await axios.post(
-        'http://localhost:3001/portfolio/investments',
-        {
-          companyId: parseInt(investmentForm.companyId),
-          fundId: selectedFund.onChainFundId,
-          amount: investmentForm.amount,
-          equityPercentage: parseInt(investmentForm.equityPercentage),
-          valuation: investmentForm.valuation,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setInvestmentForm({
-        companyId: '',
-        amount: '',
-        equityPercentage: '',
-        valuation: '',
-      });
-      
-      fetchFundPortfolio(selectedFund.onChainFundId);
-      setActiveTab('portfolio');
-      alert('Investment recorded successfully!');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to record investment');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div style={{ 
@@ -275,20 +230,20 @@ const PortfolioManagement: React.FC = () => {
             Add Company
           </button>
           <button
-            onClick={() => setActiveTab('invest')}
+            onClick={() => setActiveTab('all')}
             style={{
               padding: '12px 24px',
               fontSize: '14px',
               fontWeight: 500,
               backgroundColor: 'transparent',
               border: 'none',
-              borderBottom: activeTab === 'invest' ? '2px solid #0078d4' : '2px solid transparent',
-              color: activeTab === 'invest' ? '#0078d4' : '#a0a0a0',
+              borderBottom: activeTab === 'all' ? '2px solid #0078d4' : '2px solid transparent',
+              color: activeTab === 'all' ? '#0078d4' : '#a0a0a0',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
           >
-            Record Investment
+            All Companies
           </button>
         </div>
 
@@ -491,118 +446,54 @@ const PortfolioManagement: React.FC = () => {
           </div>
         )}
 
-        {/* Record Investment Form */}
-        {activeTab === 'invest' && (
+        {/* All Companies View */}
+        {activeTab === 'all' && (
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: '#ffffff' }}>
-              Record Investment
+              All Registered Companies
             </h2>
-            <form onSubmit={handleRecordInvestment} style={{ 
-              backgroundColor: '#2d2d2d',
-              border: '1px solid #3e3e42',
-              padding: '24px',
-              borderRadius: '8px'
-            }}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: '#e0e0e0' }}>Select Company</label>
-                <select
-                  value={investmentForm.companyId}
-                  onChange={(e) => setInvestmentForm({ ...investmentForm, companyId: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#1e1e1e',
-                    border: '1px solid #3e3e42',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    cursor: 'pointer'
-                  }}
-                  required
-                >
-                  <option value="">Select a company...</option>
-                  {allCompanies.map(company => (
-                    <option key={company.companyId} value={company.companyId}>
-                      {company.name} - {company.industry}
-                    </option>
-                  ))}
-                </select>
+            {allCompanies.length === 0 ? (
+              <div style={{ 
+                backgroundColor: '#2d2d2d', 
+                border: '1px solid #3e3e42',
+                borderRadius: '8px',
+                padding: '48px',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: '#a0a0a0', fontSize: '16px' }}>No companies registered yet.</p>
               </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: '#e0e0e0' }}>Investment Amount ($)</label>
-                <input
-                  type="number"
-                  value={investmentForm.amount}
-                  onChange={(e) => setInvestmentForm({ ...investmentForm, amount: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#1e1e1e',
+            ) : (
+              <div style={{ display: 'grid', gap: '16px' }}>
+                {allCompanies.map(company => (
+                  <div key={company.companyId} style={{ 
+                    backgroundColor: '#2d2d2d',
                     border: '1px solid #3e3e42',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px'
-                  }}
-                  required
-                />
+                    borderRadius: '8px',
+                    padding: '24px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div>
+                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>{company.name}</h3>
+                        <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '4px' }}>{company.industry} • {company.country}</p>
+                        <p style={{ color: '#8b949e', fontSize: '13px' }}>Founded: {company.foundedYear}</p>
+                      </div>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        backgroundColor: company.active ? '#1a3d1a' : '#3d3d3d',
+                        color: company.active ? '#107c10' : '#a0a0a0'
+                      }}>
+                        {company.active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: '#e0e0e0' }}>Equity Percentage (basis points, e.g., 2000 = 20%)</label>
-                <input
-                  type="number"
-                  value={investmentForm.equityPercentage}
-                  onChange={(e) => setInvestmentForm({ ...investmentForm, equityPercentage: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#1e1e1e',
-                    border: '1px solid #3e3e42',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px'
-                  }}
-                  placeholder="2000"
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: '#e0e0e0' }}>Company Valuation ($)</label>
-                <input
-                  type="number"
-                  value={investmentForm.valuation}
-                  onChange={(e) => setInvestmentForm({ ...investmentForm, valuation: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#1e1e1e',
-                    border: '1px solid #3e3e42',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px'
-                  }}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !selectedFund?.onChainFundId}
-                style={{
-                  width: '100%',
-                  backgroundColor: (loading || !selectedFund?.onChainFundId) ? '#484f58' : '#0078d4',
-                  border: 'none',
-                  borderRadius: '6px',
-                  color: '#ffffff',
-                  padding: '12px',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  cursor: (loading || !selectedFund?.onChainFundId) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {loading ? 'Recording...' : 'Record Investment'}
-              </button>
-          </form>
-        </div>
-      )}
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

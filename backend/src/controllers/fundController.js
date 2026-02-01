@@ -573,6 +573,11 @@ const fundController = {
             as: "limitedPartner",
             attributes: ["id", "email", "walletAddress", "createdAt"],
           },
+          {
+            model: Fund,
+            as: "fund",
+            attributes: ["id", "name"],
+          },
         ],
         order: [["investedAt", "DESC"]],
       });
@@ -580,6 +585,7 @@ const fundController = {
       const investors = investments.map(inv => ({
         investmentId: inv.id,
         investor: inv.limitedPartner,
+        fund: inv.fund ? { id: inv.fund.id, name: inv.fund.name } : null,
         amount: inv.amount,
         tokensIssued: inv.tokensIssued,
         status: inv.status,

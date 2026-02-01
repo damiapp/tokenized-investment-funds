@@ -20,8 +20,8 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
       console.log("Calling login function...");
       await login({ email, password });
       console.log("Login successful!");
-      // Navigate to profile after successful login
-      navigate("/profile");
+      // Navigate to home page after successful login
+      navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -139,7 +139,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
           <div style={{ marginTop: 16 }}>
             <button
               type="button"
-              onClick={() => navigate("/profile")}
+              onClick={() => navigate("/home")}
               style={{
                 background: "none",
                 border: "none",
@@ -149,7 +149,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
                 textDecoration: "underline",
               }}
             >
-              Go to Profile →
+              Go to Home →
             </button>
           </div>
         )}

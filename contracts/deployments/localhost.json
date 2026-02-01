@@ -2,7 +2,7 @@
   "network": "localhost",
   "chainId": 1337,
   "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "deployedAt": "2026-01-27T22:12:33.177Z",
+  "deployedAt": "2026-02-01T13:43:12.654Z",
   "standard": "ERC-3643",
   "contracts": {
     "IdentityRegistry": {

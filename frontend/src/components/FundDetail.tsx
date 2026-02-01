@@ -131,7 +131,8 @@ export function FundDetail() {
   };
 
   const isKycApproved = kycStatus?.status === "approved";
-  const canInvest = user?.role === "LP" && fund?.status === "active" && isKycApproved;
+  const isFundDeployed = fund?.contractAddress && fund?.onChainFundId !== null && fund?.onChainFundId !== undefined;
+  const canInvest = user?.role === "LP" && fund?.status === "active" && isKycApproved && isFundDeployed;
   const remainingCapacity = fund
     ? parseFloat(fund.targetAmount) - parseFloat(fund.raisedAmount)
     : 0;
@@ -599,6 +600,21 @@ export function FundDetail() {
                 </div>
               ) : (
                 <form onSubmit={handleInvest}>
+                  {!isFundDeployed && (
+                    <div
+                      style={{
+                        backgroundColor: "#f0883e26",
+                        border: "1px solid #f0883e",
+                        borderRadius: 6,
+                        padding: 12,
+                        marginBottom: 16,
+                        color: "#f0883e",
+                        fontSize: 14,
+                      }}
+                    >
+                      ⚠️ This fund has not been deployed to the blockchain yet. Investments will be available once the GP deploys the fund.
+                    </div>
+                  )}
                   {investError && (
                     <div
                       style={{
@@ -696,6 +712,36 @@ export function FundDetail() {
                       ⚠️ Connected wallet does not match your registered wallet
                     </div>
                   )}
+                  {investAmount && parseFloat(investAmount) < parseFloat(fund.minimumInvestment) && (
+                    <div
+                      style={{
+                        backgroundColor: "#f8514926",
+                        border: "1px solid #f85149",
+                        borderRadius: 6,
+                        padding: 12,
+                        marginBottom: 16,
+                        color: "#f85149",
+                        fontSize: 14,
+                      }}
+                    >
+                      ❌ Investment amount must be at least {formatCurrency(fund.minimumInvestment)}
+                    </div>
+                  )}
+                  {investAmount && parseFloat(investAmount) > remainingCapacity && (
+                    <div
+                      style={{
+                        backgroundColor: "#f8514926",
+                        border: "1px solid #f85149",
+                        borderRadius: 6,
+                        padding: 12,
+                        marginBottom: 16,
+                        color: "#f85149",
+                        fontSize: 14,
+                      }}
+                    >
+                      ❌ Investment amount exceeds remaining capacity of {formatCurrency(remainingCapacity)}
+                    </div>
+                  )}
                   <button
                     type="submit"
                     disabled={
@@ -738,20 +784,6 @@ export function FundDetail() {
             >
               <h3 style={{ color: "#e6edf7", margin: "0 0 16px 0", fontSize: 16 }}>Manage Fund</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button
-                  onClick={() => navigate(`/funds/${fund.id}/edit`)}
-                  style={{
-                    backgroundColor: "#21262d",
-                    border: "1px solid #30363d",
-                    borderRadius: 6,
-                    color: "#c9d1d9",
-                    padding: "10px 16px",
-                    fontSize: 14,
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit Fund
-                </button>
                 {fund.status === "draft" && (
                   <button
                     onClick={async () => {
@@ -775,7 +807,25 @@ export function FundDetail() {
                     Activate Fund
                   </button>
                 )}
-                {fund.status === "active" && (
+                {fund.status === "active" && !isFundDeployed && (
+                  <button
+                    onClick={() => {
+                      alert("Deploy to Blockchain functionality coming soon! This will deploy the fund via FundFactory and register it in the InvestmentContract.");
+                    }}
+                    style={{
+                      backgroundColor: "#0078d4",
+                      border: "none",
+                      borderRadius: 6,
+                      color: "#ffffff",
+                      padding: "10px 16px",
+                      fontSize: 14,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Deploy to Blockchain
+                  </button>
+                )}
+                {fund.status === "active" && isFundDeployed && (
                   <button
                     onClick={async () => {
                       try {

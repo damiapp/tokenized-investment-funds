@@ -54,6 +54,15 @@ const investmentController = {
         });
       }
 
+      if (!fund.contractAddress || fund.onChainFundId === null) {
+        return res.status(400).json({
+          error: {
+            code: "FUND_NOT_DEPLOYED",
+            message: "Fund must be deployed to blockchain before accepting investments",
+          },
+        });
+      }
+
       if (parseFloat(amount) < parseFloat(fund.minimumInvestment)) {
         return res.status(400).json({
           error: {
@@ -353,6 +362,7 @@ const investmentController = {
           if (contractService.isInitialized()) {
             // Get unique fund token contracts
             const fundContracts = new Map();
+            const fundsWithoutContracts = [];
             
             for (const inv of investments) {
               if (inv.fund?.contractAddress && !fundContracts.has(inv.fund.contractAddress)) {
@@ -362,6 +372,18 @@ const investmentController = {
                   fundName: inv.fund.name,
                   fundId: inv.fund.id,
                 });
+              } else if (inv.fund && !inv.fund.contractAddress && inv.status === 'confirmed') {
+                // Track funds without contract addresses
+                if (!fundsWithoutContracts.find(f => f.fundId === inv.fund.id)) {
+                  fundsWithoutContracts.push({
+                    address: null,
+                    symbol: inv.fund.tokenSymbol || 'N/A',
+                    fundName: inv.fund.name,
+                    fundId: inv.fund.id,
+                    balance: null,
+                    error: 'Fund not deployed to blockchain',
+                  });
+                }
               }
             }
 
@@ -382,6 +404,9 @@ const investmentController = {
                 });
               }
             }
+            
+            // Add funds without contracts to the list
+            onChainBalances.push(...fundsWithoutContracts);
 
             // Also get default token balance
             try {
@@ -436,6 +461,84 @@ const investmentController = {
         error: {
           code: "INTERNAL",
           message: "Failed to retrieve portfolio",
+        },
+      });
+    }
+  },
+
+  // Explicit mint endpoint (tokens are usually minted during status update to 'confirmed')
+  async mint(req, res) {
+    try {
+      const { id } = req.params;
+
+      const investment = await Investment.findByPk(id, {
+        include: [
+          { model: Fund, as: "fund" },
+          { model: User, as: "limitedPartner" },
+        ],
+      });
+
+      if (!investment) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Investment not found",
+          },
+        });
+      }
+
+      if (investment.fund.gpId !== req.user.id) {
+        return res.status(403).json({
+          error: {
+            code: "FORBIDDEN",
+            message: "Only the fund GP can mint tokens",
+          },
+        });
+      }
+
+      if (investment.status !== "confirmed") {
+        return res.status(400).json({
+          error: {
+            code: "INVALID_STATE",
+            message: "Investment must be confirmed before minting tokens",
+          },
+        });
+      }
+
+      // Check if tokens were already minted
+      if (investment.tokensIssued && investment.transactionHash) {
+        return res.status(200).json({
+          data: {
+            message: "Tokens already minted",
+            investment,
+            alreadyMinted: true,
+          },
+        });
+      }
+
+      // Mint tokens
+      const tokenMintResult = await investmentController.mintTokensForInvestment(investment);
+
+      if (tokenMintResult.success) {
+        await investment.update({
+          transactionHash: tokenMintResult.txHash,
+          tokensIssued: tokenMintResult.tokensIssued,
+        });
+      }
+
+      res.status(200).json({
+        data: {
+          investment,
+          tokenMint: tokenMintResult,
+          message: tokenMintResult.success ? "Tokens minted successfully" : "Token minting failed",
+        },
+      });
+    } catch (error) {
+      console.error("Token mint error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to mint tokens",
         },
       });
     }

@@ -115,23 +115,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
       // Fetch balance after connecting
       fetchBalance(accounts[0]);
-
-      // Save wallet address to backend (if logged in)
-      const token = apiClient.getToken();
-      if (token) {
-        try {
-          await fetch(`${API_BASE_URL}/auth/wallet`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ walletAddress: accounts[0] }),
-          });
-        } catch (err) {
-          console.warn("Failed to save wallet address to backend:", err);
-        }
-      }
     } catch (error: any) {
       updateState({
         isConnecting: false,
