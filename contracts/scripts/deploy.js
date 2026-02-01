@@ -41,14 +41,21 @@ async function main() {
   console.log("✓ FundFactory deployed to:", fundFactory.address);
 
   // Deploy InvestmentContract
-  console.log("\n[5/6] Deploying InvestmentContract...");
+  console.log("\n[5/7] Deploying InvestmentContract...");
   const InvestmentContract = await hre.ethers.getContractFactory("InvestmentContract");
   const investmentContract = await InvestmentContract.deploy(identityRegistry.address);
   await investmentContract.deployed();
   console.log("✓ InvestmentContract deployed to:", investmentContract.address);
 
+  // Deploy PortfolioCompanyRegistry
+  console.log("\n[6/7] Deploying PortfolioCompanyRegistry...");
+  const PortfolioCompanyRegistry = await hre.ethers.getContractFactory("PortfolioCompanyRegistry");
+  const portfolioRegistry = await PortfolioCompanyRegistry.deploy();
+  await portfolioRegistry.deployed();
+  console.log("✓ PortfolioCompanyRegistry deployed to:", portfolioRegistry.address);
+
   // Deploy sample FundTokenERC3643 (for demo purposes)
-  console.log("\n[6/6] Deploying Demo FundTokenERC3643...");
+  console.log("\n[7/7] Deploying Demo FundTokenERC3643...");
   const FundTokenERC3643 = await hre.ethers.getContractFactory("FundTokenERC3643");
   const fundToken = await FundTokenERC3643.deploy(
     "Demo Fund Token",
@@ -116,6 +123,9 @@ async function main() {
       InvestmentContract: {
         address: investmentContract.address,
       },
+      PortfolioCompanyRegistry: {
+        address: portfolioRegistry.address,
+      },
       FundTokenERC3643: {
         address: fundToken.address,
         name: "Demo Fund Token",
@@ -146,6 +156,7 @@ async function main() {
   const complianceModuleArtifact = await hre.artifacts.readArtifact("ComplianceModule");
   const fundFactoryArtifact = await hre.artifacts.readArtifact("FundFactory");
   const investmentContractArtifact = await hre.artifacts.readArtifact("InvestmentContract");
+  const portfolioRegistryArtifact = await hre.artifacts.readArtifact("PortfolioCompanyRegistry");
   const fundTokenArtifact = await hre.artifacts.readArtifact("FundTokenERC3643");
 
   const sharedContracts = {
@@ -173,6 +184,10 @@ async function main() {
         address: investmentContract.address,
         abi: investmentContractArtifact.abi,
       },
+      PortfolioCompanyRegistry: {
+        address: portfolioRegistry.address,
+        abi: portfolioRegistryArtifact.abi,
+      },
       FundTokenERC3643: {
         address: fundToken.address,
         abi: fundTokenArtifact.abi,
@@ -190,6 +205,7 @@ async function main() {
   console.log("ComplianceModule:        ", complianceModule.address);
   console.log("FundFactory:             ", fundFactory.address);
   console.log("InvestmentContract:      ", investmentContract.address);
+  console.log("PortfolioCompanyRegistry:", portfolioRegistry.address);
   console.log("Demo FundTokenERC3643:   ", fundToken.address);
   console.log("\nSee README.md for post-deployment integration steps.");
 }

@@ -36,6 +36,7 @@ const healthRoutes = require("./routes/health");
 const transactionRoutes = require("./routes/transactions");
 const identityRoutes = require("./routes/identity");
 const complianceRoutes = require("./routes/compliance");
+const portfolioRoutes = require("./routes/portfolio");
 
 app.use("/auth", authRoutes);
 app.use("/kyc", kycRoutes);
@@ -46,6 +47,7 @@ app.use("/health", healthRoutes);
 app.use("/transactions", transactionRoutes);
 app.use("/identity", identityRoutes);
 app.use("/compliance", complianceRoutes);
+app.use("/portfolio", portfolioRoutes);
 
 
 app.use((req, res) => {

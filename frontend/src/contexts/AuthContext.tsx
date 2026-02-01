@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from "react";
 import { apiClient, User, LoginCredentials, RegisterCredentials } from "../api/auth";
+import { useWallet } from "./WalletContext";
 
 interface AuthState {
   user: User | null;
@@ -89,6 +90,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const wallet = useWallet();
 
   useEffect(() => {
     // Check for existing token on app start
@@ -153,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     apiClient.setToken(null);
+    wallet.disconnect();
     dispatch({ type: "LOGOUT" });
   };
 

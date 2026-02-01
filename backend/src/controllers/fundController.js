@@ -539,6 +539,139 @@ const fundController = {
       });
     }
   },
+
+  // Get all investors in a fund (for GP)
+  async getFundInvestors(req, res) {
+    try {
+      const { fundId } = req.params;
+      const userId = req.user.id;
+
+      const fund = await Fund.findByPk(fundId);
+      if (!fund) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Fund not found",
+          },
+        });
+      }
+
+      if (fund.gpId !== userId) {
+        return res.status(403).json({
+          error: {
+            code: "FORBIDDEN",
+            message: "Only the fund's GP can view investors",
+          },
+        });
+      }
+
+      const investments = await Investment.findAll({
+        where: { fundId },
+        include: [
+          {
+            model: User,
+            as: "limitedPartner",
+            attributes: ["id", "email", "walletAddress", "createdAt"],
+          },
+        ],
+        order: [["investedAt", "DESC"]],
+      });
+
+      const investors = investments.map(inv => ({
+        investmentId: inv.id,
+        investor: inv.limitedPartner,
+        amount: inv.amount,
+        tokensIssued: inv.tokensIssued,
+        status: inv.status,
+        investedAt: inv.investedAt,
+        onChainInvestmentId: inv.onChainInvestmentId,
+        onChainTxHash: inv.onChainTxHash,
+      }));
+
+      res.status(200).json({
+        data: {
+          fundId,
+          fundName: fund.name,
+          investors,
+          count: investors.length,
+          totalRaised: fund.raisedAmount,
+        },
+      });
+    } catch (error) {
+      console.error("Get fund investors error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get fund investors",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  // Get fund analytics (for GP)
+  async getFundAnalytics(req, res) {
+    try {
+      const { fundId } = req.params;
+      const userId = req.user.id;
+
+      const fund = await Fund.findByPk(fundId);
+      if (!fund) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Fund not found",
+          },
+        });
+      }
+
+      if (fund.gpId !== userId) {
+        return res.status(403).json({
+          error: {
+            code: "FORBIDDEN",
+            message: "Only the fund's GP can view analytics",
+          },
+        });
+      }
+
+      const investments = await Investment.findAll({
+        where: { fundId },
+      });
+
+      const confirmedInvestments = investments.filter(inv => inv.status === "confirmed");
+      const pendingInvestments = investments.filter(inv => inv.status === "pending");
+
+      const analytics = {
+        fundId,
+        fundName: fund.name,
+        targetAmount: fund.targetAmount,
+        raisedAmount: fund.raisedAmount,
+        percentageRaised: (parseFloat(fund.raisedAmount) / parseFloat(fund.targetAmount)) * 100,
+        totalInvestors: new Set(investments.map(inv => inv.lpId)).size,
+        totalInvestments: investments.length,
+        confirmedInvestments: confirmedInvestments.length,
+        pendingInvestments: pendingInvestments.length,
+        averageInvestment: investments.length > 0 
+          ? investments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) / investments.length 
+          : 0,
+        minimumInvestment: fund.minimumInvestment,
+        status: fund.status,
+      };
+
+      res.status(200).json({
+        data: { analytics },
+      });
+    } catch (error) {
+      console.error("Get fund analytics error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get fund analytics",
+          details: error.message,
+        },
+      });
+    }
+  },
 };
 
 module.exports = fundController;

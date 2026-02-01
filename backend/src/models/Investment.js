@@ -43,6 +43,16 @@ const Investment = sequelize.define(
       allowNull: true,
       comment: "Blockchain transaction hash",
     },
+    onChainInvestmentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Investment ID from InvestmentContract",
+    },
+    onChainTxHash: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Transaction hash for on-chain investment recording",
+    },
     investedAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

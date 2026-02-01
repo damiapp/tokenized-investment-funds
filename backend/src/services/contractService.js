@@ -1,3 +1,13 @@
+// Re-export the modular contract service
+// The service has been refactored into specialized modules:
+// - contracts/identityService.js - Identity and KYC operations
+// - contracts/fundFactoryService.js - Fund factory operations
+// - contracts/investmentService.js - Investment tracking operations
+// - contracts/index.js - Main service that coordinates all modules
+
+module.exports = require("./contracts/index");
+
+/* LEGACY CODE - KEPT FOR REFERENCE
 const { ethers } = require("ethers");
 const path = require("path");
 const fs = require("fs");
@@ -10,6 +20,7 @@ class ContractService {
     this.complianceModule = null;
     this.trustedIssuersRegistry = null;
     this.fundFactory = null;
+    this.investmentContract = null;
     this.fundToken = null;
     this.initialized = false;
     this.networkInfo = null;
@@ -62,7 +73,7 @@ class ContractService {
       console.log("Signer address:", this.signer.address);
 
       // Initialize ERC-3643 contracts
-      const { IdentityRegistry, ComplianceModule, TrustedIssuersRegistry, FundFactory, FundTokenERC3643 } = deployed.contracts;
+      const { IdentityRegistry, ComplianceModule, TrustedIssuersRegistry, FundFactory, InvestmentContract, FundTokenERC3643 } = deployed.contracts;
 
       this.identityRegistry = new ethers.Contract(
         IdentityRegistry.address,
@@ -88,6 +99,12 @@ class ContractService {
         this.signer
       );
 
+      this.investmentContract = new ethers.Contract(
+        InvestmentContract.address,
+        InvestmentContract.abi,
+        this.signer
+      );
+
       this.fundToken = new ethers.Contract(
         FundTokenERC3643.address,
         FundTokenERC3643.abi,
@@ -95,11 +112,12 @@ class ContractService {
       );
 
       this.initialized = true;
-      console.log("Contract service initialized (ERC-3643 + FundFactory)");
+      console.log("Contract service initialized (ERC-3643 + FundFactory + InvestmentContract)");
       console.log("  IdentityRegistry:", IdentityRegistry.address);
       console.log("  ComplianceModule:", ComplianceModule.address);
       console.log("  TrustedIssuersRegistry:", TrustedIssuersRegistry.address);
       console.log("  FundFactory:", FundFactory.address);
+      console.log("  InvestmentContract:", InvestmentContract.address);
       console.log("  FundTokenERC3643:", FundTokenERC3643.address);
     } catch (error) {
       console.error("Failed to initialize contract service:", error.message);
@@ -551,8 +569,174 @@ class ContractService {
     const count = await this.fundFactory.getFundCount();
     return count.toNumber();
   }
+
+  // ==================== InvestmentContract Methods ====================
+
+  async registerFundInInvestmentContract(fundToken, gp, targetAmount, minimumInvestment) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tx = await this.investmentContract.registerFund(
+      fundToken,
+      gp,
+      ethers.utils.parseEther(targetAmount.toString()),
+      ethers.utils.parseEther(minimumInvestment.toString())
+    );
+    const receipt = await tx.wait();
+    
+    const event = receipt.events.find(e => e.event === "FundRegistered");
+    const fundId = event ? event.args.fundId.toNumber() : null;
+
+    return {
+      txHash: receipt.transactionHash,
+      fundId,
+    };
+  }
+
+  async recordInvestment(fundId, investor, amount, tokenAmount, txHash) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tx = await this.investmentContract.recordInvestment(
+      fundId,
+      investor,
+      ethers.utils.parseEther(amount.toString()),
+      ethers.utils.parseEther(tokenAmount.toString()),
+      txHash || ""
+    );
+    const receipt = await tx.wait();
+    
+    const event = receipt.events.find(e => e.event === "InvestmentRecorded");
+    const investmentId = event ? event.args.investmentId.toNumber() : null;
+
+    return {
+      txHash: receipt.transactionHash,
+      investmentId,
+    };
+  }
+
+  async confirmInvestment(fundId, investmentId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tx = await this.investmentContract.confirmInvestment(fundId, investmentId);
+    const receipt = await tx.wait();
+
+    return {
+      txHash: receipt.transactionHash,
+    };
+  }
+
+  async cancelInvestment(fundId, investmentId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tx = await this.investmentContract.cancelInvestment(fundId, investmentId);
+    const receipt = await tx.wait();
+
+    return {
+      txHash: receipt.transactionHash,
+    };
+  }
+
+  async closeFund(fundId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const tx = await this.investmentContract.closeFund(fundId);
+    const receipt = await tx.wait();
+
+    return {
+      txHash: receipt.transactionHash,
+    };
+  }
+
+  async getInvestmentContractFund(fundId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const fund = await this.investmentContract.getFund(fundId);
+    return {
+      fundToken: fund.fundToken,
+      gp: fund.gp,
+      targetAmount: ethers.utils.formatEther(fund.targetAmount),
+      raisedAmount: ethers.utils.formatEther(fund.raisedAmount),
+      minimumInvestment: ethers.utils.formatEther(fund.minimumInvestment),
+      active: fund.active,
+      investorCount: fund.investorCount.toNumber(),
+    };
+  }
+
+  async getInvestment(fundId, investmentId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const investment = await this.investmentContract.getInvestment(fundId, investmentId);
+    return {
+      investor: investment.investor,
+      fundToken: investment.fundToken,
+      amount: ethers.utils.formatEther(investment.amount),
+      tokenAmount: ethers.utils.formatEther(investment.tokenAmount),
+      timestamp: investment.timestamp.toNumber(),
+      status: investment.status,
+      txHash: investment.txHash,
+    };
+  }
+
+  async getFundInvestmentCount(fundId) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const count = await this.investmentContract.getFundInvestmentCount(fundId);
+    return count.toNumber();
+  }
+
+  async getInvestorTotal(fundId, investor) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const total = await this.investmentContract.getInvestorTotal(fundId, investor);
+    return ethers.utils.formatEther(total);
+  }
+
+  async getInvestorFunds(investor) {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const fundIds = await this.investmentContract.getInvestorFunds(investor);
+    return fundIds.map(id => id.toNumber());
+  }
+
+  async getTotalInvestmentVolume() {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const volume = await this.investmentContract.totalInvestmentVolume();
+    return ethers.utils.formatEther(volume);
+  }
+
+  async getInvestmentContractFundCount() {
+    if (!this.initialized) {
+      throw new Error("Contract service not initialized");
+    }
+
+    const count = await this.investmentContract.fundCount();
+    return count.toNumber();
+  }
 }
 
 const contractService = new ContractService();
 
 module.exports = contractService;
+*/

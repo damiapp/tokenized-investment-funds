@@ -133,7 +133,7 @@ describe("FundTokenERC3643", function () {
       await fundToken.freezeAccount(user1.address);
       await expect(
         fundToken.connect(user1).transfer(user2.address, ethers.utils.parseEther("50"))
-      ).to.be.revertedWithCustomError(fundToken, "AccountFrozen");
+      ).to.be.revertedWithCustomError(fundToken, "AccountIsFrozen");
     });
 
     it("Should unfreeze an account", async function () {

@@ -80,6 +80,32 @@ const investmentController = {
         status: "pending",
       });
 
+      // Record investment on-chain if fund has onChainFundId
+      if (fund.onChainFundId !== null && fund.onChainFundId !== undefined) {
+        try {
+          const lp = await User.findByPk(lpId);
+          if (lp?.walletAddress && contractService.isInitialized()) {
+            const tokenAmount = amount; // 1:1 ratio for now
+            const result = await contractService.recordInvestment(
+              fund.onChainFundId,
+              lp.walletAddress,
+              amount,
+              tokenAmount,
+              `db-${investment.id}`
+            );
+            
+            await investment.update({
+              onChainInvestmentId: result.investmentId,
+              onChainTxHash: result.txHash,
+            });
+            
+            console.log(`Investment recorded on-chain: fundId=${fund.onChainFundId}, investmentId=${result.investmentId}`);
+          }
+        } catch (error) {
+          console.warn("Failed to record investment on-chain:", error.message);
+        }
+      }
+
       await fund.update({
         raisedAmount: newRaisedAmount,
       });

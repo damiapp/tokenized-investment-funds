@@ -79,6 +79,12 @@ export function Navbar() {
               <Link to="/my-funds" style={linkStyle("/my-funds")}>
                 My Funds
               </Link>
+              <Link to="/portfolio" style={linkStyle("/portfolio")}>
+                Portfolio
+              </Link>
+              <Link to="/investors" style={linkStyle("/investors")}>
+                Investors
+              </Link>
               <Link to="/funds/create" style={linkStyle("/funds/create")}>
                 Create Fund
               </Link>

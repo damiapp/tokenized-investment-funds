@@ -14,11 +14,13 @@ import { MyInvestments } from "./components/MyInvestments";
 import { TransactionsPage } from "./components/TransactionsPage";
 import { Navbar } from "./components/Navbar";
 import { WalletProvider } from "./contexts/WalletContext";
+import PortfolioManagement from "./components/PortfolioManagement";
+import InvestorsDashboard from "./components/InvestorsDashboard";
 
 function App() {
   return (
-    <AuthProvider>
-      <WalletProvider>
+    <WalletProvider>
+      <AuthProvider>
         <Router>
           <div style={{ minHeight: "100vh", backgroundColor: "#1e1e1e" }}>
             <Navbar />
@@ -88,13 +90,29 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/portfolio"
+              element={
+                <ProtectedRoute>
+                  <PortfolioManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/investors"
+              element={
+                <ProtectedRoute>
+                  <InvestorsDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/" element={<LandingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </div>
         </Router>
-      </WalletProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </WalletProvider>
   );
 }
 

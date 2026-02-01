@@ -7,6 +7,7 @@ class EventListener {
     this.provider = null;
     this.identityRegistry = null;
     this.fundFactory = null;
+    this.investmentContract = null;
     this.listening = false;
   }
 
@@ -30,6 +31,7 @@ class EventListener {
       this.provider = contractService.provider;
       this.identityRegistry = contractService.identityRegistry;
       this.fundFactory = contractService.fundFactory;
+      this.investmentContract = contractService.investmentContract;
 
       console.log("=== Starting Blockchain Event Listener ===");
       
@@ -38,6 +40,9 @@ class EventListener {
       
       // Listen to FundFactory events
       this.listenToFundFactoryEvents();
+      
+      // Listen to InvestmentContract events
+      this.listenToInvestmentContractEvents();
 
       this.listening = true;
       console.log("✓ Event listener started successfully");
@@ -111,6 +116,50 @@ class EventListener {
     });
 
     console.log("  ✓ Listening to FundFactory events");
+  }
+
+  listenToInvestmentContractEvents() {
+    // Listen for InvestmentRecorded events
+    this.investmentContract.on("InvestmentRecorded", async (fundId, investmentId, investor, amount, tokenAmount, event) => {
+      console.log("\n[Blockchain Event] InvestmentRecorded");
+      console.log("  Fund ID:", fundId.toString());
+      console.log("  Investment ID:", investmentId.toString());
+      console.log("  Investor:", investor);
+      console.log("  Amount:", amount.toString());
+      console.log("  Token Amount:", tokenAmount.toString());
+      console.log("  Block:", event.blockNumber);
+      console.log("  Tx:", event.transactionHash);
+    });
+
+    // Listen for InvestmentConfirmed events
+    this.investmentContract.on("InvestmentConfirmed", async (fundId, investmentId, investor, event) => {
+      console.log("\n[Blockchain Event] InvestmentConfirmed");
+      console.log("  Fund ID:", fundId.toString());
+      console.log("  Investment ID:", investmentId.toString());
+      console.log("  Investor:", investor);
+      console.log("  Block:", event.blockNumber);
+      console.log("  Tx:", event.transactionHash);
+    });
+
+    // Listen for InvestmentCancelled events
+    this.investmentContract.on("InvestmentCancelled", async (fundId, investmentId, investor, event) => {
+      console.log("\n[Blockchain Event] InvestmentCancelled");
+      console.log("  Fund ID:", fundId.toString());
+      console.log("  Investment ID:", investmentId.toString());
+      console.log("  Investor:", investor);
+      console.log("  Block:", event.blockNumber);
+    });
+
+    // Listen for CapitalContributed events
+    this.investmentContract.on("CapitalContributed", async (fundId, investor, amount, event) => {
+      console.log("\n[Blockchain Event] CapitalContributed");
+      console.log("  Fund ID:", fundId.toString());
+      console.log("  Investor:", investor);
+      console.log("  Amount:", amount.toString());
+      console.log("  Block:", event.blockNumber);
+    });
+
+    console.log("  ✓ Listening to InvestmentContract events");
   }
 
   async handleIdentityRegistered(walletAddress, countryCode, txHash) {
@@ -224,6 +273,10 @@ class EventListener {
     
     if (this.fundFactory) {
       this.fundFactory.removeAllListeners();
+    }
+    
+    if (this.investmentContract) {
+      this.investmentContract.removeAllListeners();
     }
 
     this.listening = false;
