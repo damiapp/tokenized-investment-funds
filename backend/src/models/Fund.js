@@ -82,6 +82,12 @@ const Fund = sequelize.define(
       type: DataTypes.STRING(10),
       allowNull: true,
     },
+    portfolioCompanyIds: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
+      comment: "Array of on-chain portfolio company IDs associated with this fund",
+    },
     terms: {
       type: DataTypes.JSON,
       allowNull: true,

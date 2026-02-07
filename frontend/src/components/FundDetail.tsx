@@ -250,7 +250,7 @@ export function FundDetail() {
         >
           ← Back to Funds
         </button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div className="fund-detail-header">
           <div>
             <h1 style={{ color: "#e6edf7", margin: 0, fontSize: 28 }}>{fund.name}</h1>
             <div style={{ color: "#8b949e", marginTop: 8 }}>
@@ -288,7 +288,7 @@ export function FundDetail() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 350px", gap: 24 }}>
+      <div className="fund-detail-grid">
         {/* Main Content */}
         <div>
           {/* Description */}
@@ -331,7 +331,7 @@ export function FundDetail() {
             }}
           >
             <h3 style={{ color: "#e6edf7", margin: "0 0 16px 0", fontSize: 16 }}>Fund Details</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="fund-details-inner-grid">
               <div>
                 <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 4 }}>Target Amount</div>
                 <div style={{ color: "#e6edf7", fontSize: 18, fontWeight: 600 }}>
@@ -632,83 +632,83 @@ export function FundDetail() {
                             padding: 16,
                           }}
                         >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 8 }}>
-                        <div>
-                          <div style={{ color: "#e6edf7", fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-                            {company.name}
-                          </div>
-                          <div style={{ color: "#8b949e", fontSize: 13 }}>
-                            {company.industry} • {company.country}
-                          </div>
-                          <div style={{ color: "#8b949e", fontSize: 12, marginTop: 2 }}>
-                            Founded: {company.foundedYear}
-                          </div>
-                        </div>
-                        <span
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 12,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            backgroundColor: company.active ? "#23863626" : "#8b949e26",
-                            color: company.active ? "#238636" : "#8b949e",
-                          }}
-                        >
-                          {company.active ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-
-                      {company.investments && company.investments.length > 0 && (
-                        <div
-                          style={{
-                            marginTop: 12,
-                            paddingTop: 12,
-                            borderTop: "1px solid #30363d",
-                          }}
-                        >
-                          <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 8, fontWeight: 600 }}>
-                            Investment Details
-                          </div>
-                          {company.investments.map((inv, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                backgroundColor: "#0d1117",
-                                padding: 10,
-                                borderRadius: 4,
-                                marginBottom: idx < company.investments!.length - 1 ? 8 : 0,
-                              }}
-                            >
-                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
-                                <div>
-                                  <span style={{ color: "#8b949e" }}>Amount: </span>
-                                  <span style={{ color: "#238636", fontWeight: 600 }}>
-                                    ${parseFloat(inv.amount).toLocaleString()}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span style={{ color: "#8b949e" }}>Equity: </span>
-                                  <span style={{ color: "#58a6ff", fontWeight: 600 }}>
-                                    {(inv.equityPercentage / 100).toFixed(2)}%
-                                  </span>
-                                </div>
-                                <div>
-                                  <span style={{ color: "#8b949e" }}>Valuation: </span>
-                                  <span style={{ color: "#e6edf7", fontWeight: 500 }}>
-                                    ${parseFloat(inv.valuation).toLocaleString()}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span style={{ color: "#8b949e" }}>Date: </span>
-                                  <span style={{ color: "#e6edf7", fontWeight: 500 }}>
-                                    {new Date(inv.investedAt * 1000).toLocaleDateString()}
-                                  </span>
-                                </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 8 }}>
+                            <div>
+                              <div style={{ color: "#e6edf7", fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
+                                {company.name}
+                              </div>
+                              <div style={{ color: "#8b949e", fontSize: 13 }}>
+                                {company.industry} • {company.country}
+                              </div>
+                              <div style={{ color: "#8b949e", fontSize: 12, marginTop: 2 }}>
+                                Founded: {company.foundedYear}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                            <span
+                              style={{
+                                padding: "4px 10px",
+                                borderRadius: 12,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                backgroundColor: company.active ? "#23863626" : "#8b949e26",
+                                color: company.active ? "#238636" : "#8b949e",
+                              }}
+                            >
+                              {company.active ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+
+                          {company.investments && company.investments.length > 0 && (
+                            <div
+                              style={{
+                                marginTop: 12,
+                                paddingTop: 12,
+                                borderTop: "1px solid #30363d",
+                              }}
+                            >
+                              <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 8, fontWeight: 600 }}>
+                                Investment Details
+                              </div>
+                              {company.investments.map((inv, idx) => (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    backgroundColor: "#0d1117",
+                                    padding: 10,
+                                    borderRadius: 4,
+                                    marginBottom: idx < company.investments!.length - 1 ? 8 : 0,
+                                  }}
+                                >
+                                  <div className="modal-grid-2" style={{ fontSize: 12 }}>
+                                    <div>
+                                      <span style={{ color: "#8b949e" }}>Amount: </span>
+                                      <span style={{ color: "#238636", fontWeight: 600 }}>
+                                        ${parseFloat(inv.amount).toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span style={{ color: "#8b949e" }}>Equity: </span>
+                                      <span style={{ color: "#58a6ff", fontWeight: 600 }}>
+                                        {(inv.equityPercentage / 100).toFixed(2)}%
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span style={{ color: "#8b949e" }}>Valuation: </span>
+                                      <span style={{ color: "#e6edf7", fontWeight: 500 }}>
+                                        ${parseFloat(inv.valuation).toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span style={{ color: "#8b949e" }}>Date: </span>
+                                      <span style={{ color: "#e6edf7", fontWeight: 500 }}>
+                                        {new Date(inv.investedAt * 1000).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

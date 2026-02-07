@@ -79,7 +79,7 @@ export function UserProfile() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <span style={{ color: "#8b949e", fontSize: 14 }}>Registered Wallet:</span>
-                <div style={{ color: "#e6edf7", fontSize: 16, marginTop: 4, fontFamily: "monospace" }}>
+                <div style={{ color: "#e6edf7", fontSize: 16, marginTop: 4, fontFamily: "monospace", wordBreak: "break-all" }}>
                   {user.walletAddress || "Not set"}
                 </div>
               </div>
@@ -89,7 +89,8 @@ export function UserProfile() {
                   color: connectedWallet ? "#238636" : "#8b949e", 
                   fontSize: 16, 
                   marginTop: 4,
-                  fontFamily: "monospace"
+                  fontFamily: "monospace",
+                  wordBreak: "break-all"
                 }}>
                   {connectedWallet || "Not connected"}
                 </div>

@@ -59,14 +59,7 @@ export function TransactionSummary({ summary }: TransactionSummaryProps) {
   ];
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        gap: 16,
-        marginBottom: 24,
-      }}
-    >
+    <div className="summary-cards-grid">
       {cards.map((card, index) => (
         <div
           key={index}

@@ -40,6 +40,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
     riskLevel: "medium",
     fundingDeadline: "",
     tokenSymbol: "",
+    portfolioCompanyIds: [],
   });
 
   useEffect(() => {
@@ -120,9 +121,14 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
       return;
     }
 
+    if (selectedCompanies.length === 0) {
+      setError("Please select at least one portfolio company");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await fundsApi.create(formData);
+      await fundsApi.create({ ...formData, portfolioCompanyIds: selectedCompanies });
       setSuccess(true);
       setFormData({
         name: "",
@@ -135,7 +141,9 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
         riskLevel: "medium",
         fundingDeadline: "",
         tokenSymbol: "",
+        portfolioCompanyIds: [],
       });
+      setSelectedCompanies([]);
       if (onFundCreated) {
         onFundCreated();
       }
@@ -254,7 +262,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="create-fund-row">
             <div>
               <label style={{ color: "#e6edf7", fontSize: 14, marginBottom: 8, display: "block" }}>
                 Target Amount ($) *
@@ -308,7 +316,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="create-fund-row">
             <div>
               <label style={{ color: "#e6edf7", fontSize: 14, marginBottom: 8, display: "block" }}>
                 Management Fee (%) *
@@ -389,7 +397,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="create-fund-row">
             <div>
               <label style={{ color: "#e6edf7", fontSize: 14, marginBottom: 8, display: "block" }}>
                 Risk Level *
@@ -466,7 +474,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
           {/* Portfolio Companies Selection */}
           <div>
             <label style={{ color: "#e6edf7", fontSize: 14, marginBottom: 8, display: "block" }}>
-              Portfolio Companies (optional)
+              Portfolio Companies *
             </label>
             <div style={{ 
               backgroundColor: "#21262d",

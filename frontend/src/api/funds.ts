@@ -18,6 +18,7 @@ export interface Fund {
   onChainFundId?: number;
   investmentContractFundId?: number;
   tokenSymbol?: string;
+  portfolioCompanyIds?: number[];
   terms?: any;
   createdAt: string;
   updatedAt: string;
@@ -58,6 +59,7 @@ export interface CreateFundData {
   riskLevel: "low" | "medium" | "high";
   fundingDeadline?: string;
   tokenSymbol?: string;
+  portfolioCompanyIds: number[];
   terms?: any;
 }
 

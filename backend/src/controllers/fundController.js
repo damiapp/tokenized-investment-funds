@@ -28,6 +28,7 @@ const fundController = {
         fundingDeadline,
         tokenSymbol,
         terms,
+        portfolioCompanyIds,
       } = req.body;
 
       if (!name || !description || !targetAmount || !minimumInvestment || !managementFee || !performanceFee || !investmentStrategy || !riskLevel) {
@@ -35,6 +36,15 @@ const fundController = {
           error: {
             code: "VALIDATION_ERROR",
             message: "Missing required fields",
+          },
+        });
+      }
+
+      if (!portfolioCompanyIds || !Array.isArray(portfolioCompanyIds) || portfolioCompanyIds.length === 0) {
+        return res.status(400).json({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "At least one portfolio company must be selected",
           },
         });
       }
@@ -52,6 +62,7 @@ const fundController = {
         fundingDeadline,
         tokenSymbol,
         terms,
+        portfolioCompanyIds,
         status: "draft",
       });
 

@@ -67,15 +67,10 @@ export function FundList() {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 24,
-      }}>
+      <div className="fund-list-header">
         <h1 style={{ color: "#e6edf7", margin: 0 }}>Investment Funds</h1>
         
-        <div style={{ display: "flex", gap: 12 }}>
+        <div className="fund-list-filters">
           <select
             value={filter.status || ""}
             onChange={(e) => setFilter({ ...filter, status: e.target.value || undefined })}

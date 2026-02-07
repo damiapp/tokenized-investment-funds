@@ -351,7 +351,7 @@ const InvestorsDashboard: React.FC = () => {
       {/* Investors Tab */}
       {activeTab === 'investors' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div className="investors-header">
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
                 Investors ({filteredInvestors.length})
@@ -435,6 +435,7 @@ const InvestorsDashboard: React.FC = () => {
               borderRadius: '8px',
               overflow: 'hidden'
             }}>
+              <div className="table-scroll-wrapper">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead style={{ backgroundColor: '#252525', borderBottom: '1px solid #3e3e42' }}>
                   <tr>
@@ -558,6 +559,7 @@ const InvestorsDashboard: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>

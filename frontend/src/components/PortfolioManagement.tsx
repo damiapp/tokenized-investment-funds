@@ -200,9 +200,7 @@ const PortfolioManagement: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '8px', 
+        <div className="portfolio-tabs" style={{ 
           marginBottom: '32px',
           borderBottom: '1px solid #3e3e42'
         }}>

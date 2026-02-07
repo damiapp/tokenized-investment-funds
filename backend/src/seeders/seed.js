@@ -269,6 +269,11 @@ async function seed() {
 
     const createdFunds = [];
     for (const fundData of fundsData) {
+      // Resolve portfolio company names to on-chain IDs
+      const portfolioCompanyIds = (fundData.portfolioCompanies || [])
+        .map(pc => companyIdMap.get(pc.name))
+        .filter(id => id !== undefined);
+
       const [fund, fundCreated] = await Fund.findOrCreate({
         where: { name: fundData.name },
         defaults: {
@@ -283,6 +288,7 @@ async function seed() {
           riskLevel: fundData.riskLevel,
           status: "active",
           tokenSymbol: fundData.tokenSymbol,
+          portfolioCompanyIds,
         },
       });
 

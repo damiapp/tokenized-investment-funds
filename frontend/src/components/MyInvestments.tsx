@@ -200,14 +200,7 @@ export function MyInvestments() {
       )}
 
       {/* Stats */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
+      <div className="stats-grid-3">
         <div
           style={{
             backgroundColor: "#161b22",
@@ -371,10 +364,8 @@ export function MyInvestments() {
               </div>
 
               <div
+                className="stats-grid-4"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: 16,
                   marginTop: 16,
                   paddingTop: 16,
                   borderTop: "1px solid #21262d",

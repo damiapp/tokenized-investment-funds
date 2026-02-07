@@ -161,7 +161,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
                 Transaction ID
               </label>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ color: "#ffffff", fontSize: 14, fontFamily: "monospace" }}>
+                <span style={{ color: "#ffffff", fontSize: 14, fontFamily: "monospace", wordBreak: "break-all" }}>
                   {transaction.id}
                 </span>
                 <button
@@ -242,7 +242,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
                       Contract Address
                     </label>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ color: "#cccccc", fontSize: 13, fontFamily: "monospace" }}>
+                      <span style={{ color: "#cccccc", fontSize: 13, fontFamily: "monospace", wordBreak: "break-all" }}>
                         {transaction.fundContractAddress}
                       </span>
                       <button
@@ -265,7 +265,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
             </div>
 
             {/* Parties */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="modal-grid-2">
               {/* GP */}
               <div
                 style={{
@@ -340,7 +340,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
               <h3 style={{ color: "#ffffff", fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
                 Investment Details
               </h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="modal-grid-2">
                 <div>
                   <label style={{ color: "#9d9d9d", fontSize: 12, display: "block", marginBottom: 4 }}>
                     Amount Invested

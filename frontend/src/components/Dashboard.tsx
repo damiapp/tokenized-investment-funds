@@ -146,12 +146,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "2fr 1fr", 
-        gap: 24,
-        marginBottom: 24
-      }}>
+      <div className="dashboard-grid">
         {/* Platform News */}
         <div style={{
           backgroundColor: "#161b22",

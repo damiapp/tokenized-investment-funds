@@ -24,6 +24,7 @@ function App() {
         <Router>
           <div style={{ minHeight: "100vh", backgroundColor: "#1e1e1e" }}>
             <Navbar />
+          <div className="main-content" style={{ paddingTop: 85 }}>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route
@@ -109,6 +110,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </div>
           </div>
         </Router>
       </AuthProvider>

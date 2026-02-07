@@ -99,16 +99,9 @@ export function TransactionsPage() {
   };
 
   return (
-    <div style={{ maxWidth: 1600, margin: "0 auto", padding: 24 }}>
+    <div className="page-container" style={{ maxWidth: 1600, margin: "0 auto", padding: 24 }}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 24,
-        }}
-      >
+      <div className="transactions-header">
         <div>
           <h1 style={{ color: "#ffffff", fontSize: 32, fontWeight: 700, margin: 0 }}>
             Transaction History
@@ -158,14 +151,7 @@ export function TransactionsPage() {
       )}
 
       {/* Main Content */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "300px 1fr",
-          gap: 24,
-          marginBottom: 24,
-        }}
-      >
+      <div className="transactions-grid">
         {/* Filters Sidebar */}
         <FiltersComponent filters={filters} onFilterChange={handleFilterChange} />
 
