@@ -132,9 +132,87 @@ async function seed() {
     console.log();
 
     // ============================================
-    // 3. CREATE AND DEPLOY FUNDS
+    // 3. CREATE PORTFOLIO COMPANIES
     // ============================================
-    console.log("📋 Step 3: Creating and deploying funds...");
+    console.log("📋 Step 3: Creating portfolio companies...");
+
+    const companies = [
+      { name: "NeuralTech AI", industry: "Artificial Intelligence", country: "USA", foundedYear: 2020 },
+      { name: "BlockChain Solutions", industry: "Blockchain", country: "Singapore", foundedYear: 2019 },
+      { name: "CloudScale SaaS", industry: "Cloud Computing", country: "USA", foundedYear: 2021 },
+      { name: "BioGen Therapeutics", industry: "Biotechnology", country: "Switzerland", foundedYear: 2018 },
+      { name: "SolarWave Energy", industry: "Solar Energy", country: "USA", foundedYear: 2019 },
+      { name: "WindTech Systems", industry: "Wind Energy", country: "Denmark", foundedYear: 2017 },
+      { name: "PayFlow Fintech", industry: "Payments", country: "USA", foundedYear: 2020 },
+      { name: "HealthHub Digital", industry: "Digital Health", country: "UK", foundedYear: 2021 },
+    ];
+
+    const companyIdMap = new Map(); // Map company name to on-chain ID
+
+    try {
+      // Login as GP to create companies via API
+      const loginResponse = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email: "gp@demo.com",
+        password: "password123",
+      });
+
+      const token = loginResponse.data.data.token;
+
+      // Check existing companies on-chain first
+      const existingCompaniesResponse = await axios.get(
+        `${API_BASE_URL}/portfolio/companies`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      const existingCompanies = existingCompaniesResponse.data.data.companies || [];
+      
+      // Map existing companies by name
+      for (const company of existingCompanies) {
+        companyIdMap.set(company.name, company.companyId);
+      }
+
+      let successCount = 0;
+      let skipCount = 0;
+
+      for (const company of companies) {
+        if (companyIdMap.has(company.name)) {
+          console.log(`  ⏭️  Company exists: ${company.name} (ID: ${companyIdMap.get(company.name)})`);
+          skipCount++;
+          continue;
+        }
+
+        try {
+          const response = await axios.post(
+            `${API_BASE_URL}/portfolio/companies`,
+            company,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          
+          const companyId = response.data.data.companyId;
+          companyIdMap.set(company.name, companyId);
+          console.log(`  ✅ Company: ${company.name} (ID: ${companyId})`);
+          successCount++;
+        } catch (err) {
+          if (err.response?.status === 409 || err.response?.data?.error?.message?.includes("already exists")) {
+            console.log(`  ⏭️  Company exists: ${company.name}`);
+            skipCount++;
+          } else {
+            console.error(`  ❌ Failed: ${company.name} - ${err.response?.data?.error?.message || err.message}`);
+          }
+        }
+      }
+
+      console.log(`  📊 ${successCount} created, ${skipCount} skipped, ${companyIdMap.size} total available`);
+    } catch (error) {
+      console.error(`  ❌ Portfolio company seeding failed: ${error.message}`);
+    }
+
+    console.log();
+
+    // ============================================
+    // 4. CREATE AND DEPLOY FUNDS
+    // ============================================
+    console.log("📋 Step 4: Creating and deploying funds...");
 
     const fundsData = [
       {
@@ -148,6 +226,12 @@ async function seed() {
         riskLevel: "high",
         tokenSymbol: "TVF",
         deploy: true,
+        portfolioCompanies: [
+          { name: "NeuralTech AI", amount: 150000, equityPercentage: 15, valuation: 1000000 },
+          { name: "BlockChain Solutions", amount: 200000, equityPercentage: 12, valuation: 1666667 },
+          { name: "CloudScale SaaS", amount: 100000, equityPercentage: 10, valuation: 1000000 },
+          { name: "PayFlow Fintech", amount: 175000, equityPercentage: 14, valuation: 1250000 },
+        ],
       },
       {
         name: "Sustainable Energy Fund",
@@ -160,6 +244,10 @@ async function seed() {
         riskLevel: "medium",
         tokenSymbol: "SEF",
         deploy: true,
+        portfolioCompanies: [
+          { name: "SolarWave Energy", amount: 250000, equityPercentage: 20, valuation: 1250000 },
+          { name: "WindTech Systems", amount: 300000, equityPercentage: 18, valuation: 1666667 },
+        ],
       },
       {
         name: "Healthcare Innovation Fund",
@@ -171,7 +259,11 @@ async function seed() {
         investmentStrategy: "Balanced approach targeting FDA-approved products and late-stage clinical trials with clear commercialization paths.",
         riskLevel: "medium",
         tokenSymbol: "HIF",
-        deploy: false, // Database only - for testing undeployed funds
+        deploy: false,
+        portfolioCompanies: [
+          { name: "BioGen Therapeutics", amount: 180000, equityPercentage: 8, valuation: 2250000 },
+          { name: "HealthHub Digital", amount: 120000, equityPercentage: 12, valuation: 1000000 },
+        ],
       },
     ];
 
@@ -228,12 +320,41 @@ async function seed() {
               fundData.minimumInvestment
             );
             
-            // Store InvestmentContract fund ID in a custom field
-            fund.investmentContractFundId = investmentContractResult.fundId;
+            // Store InvestmentContract fund ID in database
+            await fund.update({
+              investmentContractFundId: investmentContractResult.fundId,
+            });
             
             console.log(`  ✅ Registered in InvestmentContract (Fund ID: ${investmentContractResult.fundId})`);
           } catch (regError) {
             console.error(`  ⚠️  InvestmentContract registration failed: ${regError.message}`);
+          }
+
+          // Record portfolio company investments
+          if (fundData.portfolioCompanies && fundData.portfolioCompanies.length > 0) {
+            console.log(`  → Recording ${fundData.portfolioCompanies.length} portfolio investments...`);
+            // Reload fund to get the updated investmentContractFundId
+            await fund.reload();
+            
+            for (const portfolioInv of fundData.portfolioCompanies) {
+              const companyId = companyIdMap.get(portfolioInv.name);
+              if (companyId !== undefined && fund.investmentContractFundId !== undefined) {
+                try {
+                  await contractService.portfolio.recordInvestment(
+                    companyId,
+                    fund.investmentContractFundId,
+                    portfolioInv.amount,
+                    portfolioInv.equityPercentage,
+                    portfolioInv.valuation
+                  );
+                  console.log(`    ✅ ${portfolioInv.name}: $${portfolioInv.amount.toLocaleString()} (${portfolioInv.equityPercentage}% equity)`);
+                } catch (invError) {
+                  console.error(`    ❌ Failed to record investment in ${portfolioInv.name}: ${invError.message}`);
+                }
+              } else {
+                console.warn(`    ⚠️  Skipping ${portfolioInv.name}: company ID or fund ID not available`);
+              }
+            }
           }
         } catch (error) {
           console.error(`  ❌ Deployment failed: ${error.message}`);
@@ -251,9 +372,9 @@ async function seed() {
     console.log();
 
     // ============================================
-    // 4. CREATE INVESTMENTS
+    // 5. CREATE LP INVESTMENTS IN FUNDS
     // ============================================
-    console.log("📋 Step 4: Creating investments...");
+    console.log("📋 Step 5: Creating LP investments in funds...");
 
     const investmentsData = [
       // Tech Ventures Fund investments
@@ -323,73 +444,6 @@ async function seed() {
       } else {
         console.log(`  ⏭️  Investment exists: ${lp.email} → ${fund.name}`);
       }
-    }
-
-    console.log();
-
-    // ============================================
-    // 5. CREATE PORTFOLIO COMPANIES
-    // ============================================
-    console.log("📋 Step 5: Creating portfolio companies...");
-
-    const companies = [
-      { name: "NeuralTech AI", industry: "Artificial Intelligence", country: "USA", foundedYear: 2020 },
-      { name: "BlockChain Solutions", industry: "Blockchain", country: "Singapore", foundedYear: 2019 },
-      { name: "CloudScale SaaS", industry: "Cloud Computing", country: "USA", foundedYear: 2021 },
-      { name: "BioGen Therapeutics", industry: "Biotechnology", country: "Switzerland", foundedYear: 2018 },
-      { name: "SolarWave Energy", industry: "Solar Energy", country: "USA", foundedYear: 2019 },
-      { name: "WindTech Systems", industry: "Wind Energy", country: "Denmark", foundedYear: 2017 },
-      { name: "PayFlow Fintech", industry: "Payments", country: "USA", foundedYear: 2020 },
-      { name: "HealthHub Digital", industry: "Digital Health", country: "UK", foundedYear: 2021 },
-    ];
-
-    // Login as GP to create companies via API
-    try {
-      const loginResponse = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email: "gp@demo.com",
-        password: "password123",
-      });
-
-      const token = loginResponse.data.data.token;
-      let successCount = 0;
-      let skipCount = 0;
-
-      // Check existing companies on-chain first
-      const existingCompanies = await axios.get(
-        `${API_BASE_URL}/portfolio/companies`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      const existingNames = new Set(existingCompanies.data.data.map(c => c.name));
-
-      for (const company of companies) {
-        if (existingNames.has(company.name)) {
-          console.log(`  ⏭️  Company exists: ${company.name}`);
-          skipCount++;
-          continue;
-        }
-
-        try {
-          await axios.post(
-            `${API_BASE_URL}/portfolio/companies`,
-            company,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          console.log(`  ✅ Company: ${company.name}`);
-          successCount++;
-        } catch (err) {
-          if (err.response?.status === 409 || err.response?.data?.error?.message?.includes("already exists")) {
-            console.log(`  ⏭️  Company exists: ${company.name}`);
-            skipCount++;
-          } else {
-            console.error(`  ❌ Failed: ${company.name} - ${err.response?.data?.error?.message || err.message}`);
-          }
-        }
-      }
-
-      console.log(`  📊 ${successCount} created, ${skipCount} skipped`);
-    } catch (error) {
-      console.error(`  ❌ Portfolio company seeding failed: ${error.message}`);
     }
 
     console.log();

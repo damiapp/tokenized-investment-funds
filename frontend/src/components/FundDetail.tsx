@@ -4,6 +4,22 @@ import { fundsApi, investmentsApi, type Fund } from "../api/funds";
 import { kycApi, type KYCStatus } from "../api/kyc";
 import { useAuth } from "../contexts/AuthContext";
 import { useWallet } from "../contexts/WalletContext";
+import axios from "axios";
+
+interface PortfolioCompany {
+  companyId: number;
+  name: string;
+  industry: string;
+  country: string;
+  foundedYear: number;
+  active: boolean;
+  investments?: {
+    amount: string;
+    equityPercentage: number;
+    valuation: string;
+    investedAt: number;
+  }[];
+}
 
 export function FundDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +37,10 @@ export function FundDetail() {
   const [investError, setInvestError] = useState<string | null>(null);
   const [investSuccess, setInvestSuccess] = useState<string | null>(null);
 
+  const [portfolioCompanies, setPortfolioCompanies] = useState<PortfolioCompany[]>([]);
+  const [portfolioLoading, setPortfolioLoading] = useState(false);
+  const [portfolioExpanded, setPortfolioExpanded] = useState(true);
+
   useEffect(() => {
     if (id) {
       fetchFund();
@@ -31,10 +51,23 @@ export function FundDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.role]);
 
+  useEffect(() => {
+    console.log("Portfolio useEffect triggered. investmentContractFundId:", fund?.investmentContractFundId);
+    if (fund?.investmentContractFundId !== null && fund?.investmentContractFundId !== undefined) {
+      console.log("Calling fetchPortfolioCompanies...");
+      fetchPortfolioCompanies(fund.investmentContractFundId);
+    } else {
+      console.log("Not fetching portfolio - investmentContractFundId is null or undefined");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fund?.investmentContractFundId]);
+
   const fetchFund = async () => {
     try {
       setIsLoading(true);
       const response = await fundsApi.getById(id!);
+      console.log("Fund loaded:", response.data.fund.name);
+      console.log("investmentContractFundId:", response.data.fund.investmentContractFundId);
       setFund(response.data.fund);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load fund");
@@ -49,6 +82,23 @@ export function FundDetail() {
       setKycStatus(response.data);
     } catch {
       // KYC status not found is okay
+    }
+  };
+
+  const fetchPortfolioCompanies = async (fundId: number) => {
+    console.log("Fetching portfolio for fundId:", fundId);
+    setPortfolioLoading(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await axios.get(`http://localhost:3001/portfolio/fund/${fundId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Portfolio response:", response.data.data);
+      setPortfolioCompanies(response.data.data.companies || []);
+    } catch (err) {
+      console.error("Failed to fetch portfolio companies:", err);
+    } finally {
+      setPortfolioLoading(false);
     }
   };
 
@@ -533,6 +583,140 @@ export function FundDetail() {
               <span>{formatCurrency(fund.targetAmount)} target</span>
             </div>
           </div>
+
+          {/* Portfolio Companies */}
+          {fund.investmentContractFundId !== null && fund.investmentContractFundId !== undefined && (
+            <div
+              style={{
+                backgroundColor: "#161b22",
+                border: "1px solid #30363d",
+                borderRadius: 6,
+                padding: 20,
+                marginBottom: 16,
+              }}
+            >
+              <div 
+                style={{ 
+                  display: "flex", 
+                  justifyContent: "space-between", 
+                  alignItems: "center",
+                  marginBottom: portfolioExpanded ? 16 : 0,
+                  cursor: "pointer"
+                }}
+                onClick={() => setPortfolioExpanded(!portfolioExpanded)}
+              >
+                <h3 style={{ color: "#e6edf7", margin: 0, fontSize: 16 }}>
+                  Portfolio Companies {portfolioCompanies.length > 0 && `(${portfolioCompanies.length})`}
+                </h3>
+                <span style={{ color: "#8b949e", fontSize: 18 }}>
+                  {portfolioExpanded ? "−" : "+"}
+                </span>
+              </div>
+              {portfolioExpanded && (
+                <>
+                  {portfolioLoading ? (
+                    <div style={{ color: "#8b949e", textAlign: "center", padding: 20 }}>Loading portfolio...</div>
+                  ) : portfolioCompanies.length === 0 ? (
+                    <div style={{ color: "#8b949e", textAlign: "center", padding: 20 }}>
+                      No portfolio companies yet.
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {portfolioCompanies.map((company) => (
+                        <div
+                          key={company.companyId}
+                          style={{
+                            backgroundColor: "#21262d",
+                            border: "1px solid #30363d",
+                            borderRadius: 6,
+                            padding: 16,
+                          }}
+                        >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 8 }}>
+                        <div>
+                          <div style={{ color: "#e6edf7", fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
+                            {company.name}
+                          </div>
+                          <div style={{ color: "#8b949e", fontSize: 13 }}>
+                            {company.industry} • {company.country}
+                          </div>
+                          <div style={{ color: "#8b949e", fontSize: 12, marginTop: 2 }}>
+                            Founded: {company.foundedYear}
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 12,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            backgroundColor: company.active ? "#23863626" : "#8b949e26",
+                            color: company.active ? "#238636" : "#8b949e",
+                          }}
+                        >
+                          {company.active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+
+                      {company.investments && company.investments.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: 12,
+                            paddingTop: 12,
+                            borderTop: "1px solid #30363d",
+                          }}
+                        >
+                          <div style={{ color: "#8b949e", fontSize: 12, marginBottom: 8, fontWeight: 600 }}>
+                            Investment Details
+                          </div>
+                          {company.investments.map((inv, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                backgroundColor: "#0d1117",
+                                padding: 10,
+                                borderRadius: 4,
+                                marginBottom: idx < company.investments!.length - 1 ? 8 : 0,
+                              }}
+                            >
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+                                <div>
+                                  <span style={{ color: "#8b949e" }}>Amount: </span>
+                                  <span style={{ color: "#238636", fontWeight: 600 }}>
+                                    ${parseFloat(inv.amount).toLocaleString()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span style={{ color: "#8b949e" }}>Equity: </span>
+                                  <span style={{ color: "#58a6ff", fontWeight: 600 }}>
+                                    {(inv.equityPercentage / 100).toFixed(2)}%
+                                  </span>
+                                </div>
+                                <div>
+                                  <span style={{ color: "#8b949e" }}>Valuation: </span>
+                                  <span style={{ color: "#e6edf7", fontWeight: 500 }}>
+                                    ${parseFloat(inv.valuation).toLocaleString()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span style={{ color: "#8b949e" }}>Date: </span>
+                                  <span style={{ color: "#e6edf7", fontWeight: 500 }}>
+                                    {new Date(inv.investedAt * 1000).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {/* Investment Form (LP only) */}
           {user?.role === "LP" && (

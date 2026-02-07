@@ -28,6 +28,7 @@ interface Fund {
   id: string;
   name: string;
   onChainFundId?: number;
+  investmentContractFundId?: number;
 }
 
 const PortfolioManagement: React.FC = () => {
@@ -55,8 +56,11 @@ const PortfolioManagement: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedFund?.onChainFundId !== undefined) {
-      fetchFundPortfolio(selectedFund.onChainFundId);
+    setError('');
+    setPortfolio([]);
+    
+    if (selectedFund?.investmentContractFundId !== undefined) {
+      fetchFundPortfolio(selectedFund.investmentContractFundId);
     }
   }, [selectedFund]);
 
@@ -65,9 +69,12 @@ const PortfolioManagement: React.FC = () => {
       const response = await axios.get('http://localhost:3001/funds/my-funds', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMyFunds(response.data.data.funds || []);
-      if (response.data.data.funds.length > 0) {
-        setSelectedFund(response.data.data.funds[0]);
+      const allFunds = response.data.data.funds || [];
+      // Only show funds that are deployed (have investmentContractFundId)
+      const deployedFunds = allFunds.filter((f: Fund) => f.investmentContractFundId !== null && f.investmentContractFundId !== undefined);
+      setMyFunds(deployedFunds);
+      if (deployedFunds.length > 0) {
+        setSelectedFund(deployedFunds[0]);
       }
     } catch (err: any) {
       console.error('Failed to fetch funds:', err);
@@ -76,13 +83,15 @@ const PortfolioManagement: React.FC = () => {
 
   const fetchFundPortfolio = async (fundId: number) => {
     setLoading(true);
+    setError('');
     try {
       const response = await axios.get(`http://localhost:3001/portfolio/fund/${fundId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPortfolio(response.data.data.companies || []);
     } catch (err: any) {
-      setError('Failed to load portfolio');
+      console.error('Portfolio fetch error:', err);
+      setError(err.response?.data?.error?.message || 'Failed to load portfolio');
     } finally {
       setLoading(false);
     }
@@ -181,10 +190,10 @@ const PortfolioManagement: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            <option value="">Select a fund...</option>
+            <option value="">{myFunds.length === 0 ? 'No deployed funds available' : 'Select a fund...'}</option>
             {myFunds.map(fund => (
               <option key={fund.id} value={fund.id}>
-                {fund.name} {fund.onChainFundId !== undefined ? `(ID: ${fund.onChainFundId})` : '(Not deployed)'}
+                {fund.name} (Portfolio ID: {fund.investmentContractFundId})
               </option>
             ))}
           </select>
@@ -267,7 +276,21 @@ const PortfolioManagement: React.FC = () => {
             <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: '#ffffff' }}>
               Portfolio Companies
             </h2>
-            {loading ? (
+            {!selectedFund ? (
+              <div style={{ 
+                backgroundColor: '#2d2d2d', 
+                border: '1px solid #3e3e42',
+                borderRadius: '8px',
+                padding: '48px',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: '#a0a0a0', fontSize: '16px' }}>
+                  {myFunds.length === 0 
+                    ? 'No deployed funds available. Deploy a fund to manage its portfolio.' 
+                    : 'Please select a fund to view its portfolio.'}
+                </p>
+              </div>
+            ) : loading ? (
               <p style={{ color: '#a0a0a0', padding: '40px', textAlign: 'center' }}>Loading...</p>
             ) : portfolio.length === 0 ? (
               <div style={{ 

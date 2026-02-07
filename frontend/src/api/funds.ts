@@ -16,6 +16,7 @@ export interface Fund {
   fundingDeadline?: string;
   contractAddress?: string;
   onChainFundId?: number;
+  investmentContractFundId?: number;
   tokenSymbol?: string;
   terms?: any;
   createdAt: string;

@@ -73,6 +73,11 @@ const Fund = sequelize.define(
       allowNull: true,
       comment: "Fund ID from FundFactory contract",
     },
+    investmentContractFundId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Fund ID from InvestmentContract (used for portfolio lookups)",
+    },
     tokenSymbol: {
       type: DataTypes.STRING(10),
       allowNull: true,
