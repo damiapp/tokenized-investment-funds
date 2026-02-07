@@ -73,7 +73,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     ethereum.on("accountsChanged", handleAccountsChanged);
     ethereum.on("chainChanged", handleChainChanged);
 
-    // Check if already connected
     ethereum.request({ method: "eth_accounts" }).then((accounts: string[]) => {
       if (accounts.length > 0) {
         updateState({ address: accounts[0], isConnected: true });
@@ -113,7 +112,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         isConnecting: false,
       });
 
-      // Fetch balance after connecting
       fetchBalance(accounts[0]);
     } catch (error: any) {
       updateState({
@@ -148,7 +146,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         params: [{ chainId: `0x${targetChainId.toString(16)}` }],
       });
     } catch (error: any) {
-      // Chain not added, try to add it
       if (error.code === 4902 && targetChainId === EXPECTED_CHAIN_ID) {
         try {
           await ethereum.request({

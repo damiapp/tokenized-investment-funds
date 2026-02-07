@@ -17,7 +17,6 @@ export function Dashboard() {
     try {
       setIsLoading(true);
       const response = await fundsApi.getAll({});
-      // Get the 3 most recent active funds
       const activeFunds = response.data.funds
         .filter((f: Fund) => f.status === "active")
         .sort((a: Fund, b: Fund) => 

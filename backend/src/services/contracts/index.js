@@ -20,7 +20,6 @@ class ContractService {
     this.initialized = false;
     this.networkInfo = null;
     
-    // Specialized services
     this.identity = null;
     this.fundFactoryService = null;
     this.investment = null;
@@ -111,7 +110,6 @@ class ContractService {
         this.signer
       );
 
-      // Initialize specialized services
       this.identity = new IdentityService(this.identityRegistry, this.signer);
       this.fundFactoryService = new FundFactoryService(this.fundFactory, this.signer);
       this.investment = new InvestmentService(this.investmentContract, this.signer);
@@ -139,7 +137,6 @@ class ContractService {
     return this.initialized;
   }
 
-  // Delegate to specialized services with backward compatibility
   async isKycVerified(walletAddress) {
     return this.identity.isKycVerified(walletAddress);
   }
@@ -208,7 +205,6 @@ class ContractService {
     return this.investment.getTotalInvestmentVolume();
   }
 
-  // Token operations (kept in main service for now)
   async mintFundTokens(to, amount) {
     if (!this.initialized) {
       throw new Error("Contract service not initialized");

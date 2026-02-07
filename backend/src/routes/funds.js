@@ -13,7 +13,6 @@ router.get("/discover", fundController.discoverFunds);
 router.get("/on-chain/:fundId", fundController.getOnChainFund);
 router.get("/by-gp/:gpAddress", fundController.getFundsByGP);
 
-// GP-only routes for investor tracking
 router.get("/:fundId/investors", fundController.getFundInvestors);
 router.get("/:fundId/analytics", fundController.getFundAnalytics);
 

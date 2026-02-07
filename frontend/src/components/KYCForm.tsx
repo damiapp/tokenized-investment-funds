@@ -40,13 +40,11 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
   const handleFileChange = (type: KYCDocumentType, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError(`File size must be less than 5MB`);
         return;
       }
 
-      // Validate file type
       const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
       if (!allowedTypes.includes(file.type)) {
         setError(`Only JPEG, PNG, and PDF files are allowed`);

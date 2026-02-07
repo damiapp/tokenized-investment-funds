@@ -10,7 +10,6 @@ export function AuthPage() {
 
   const toggleMode = () => setIsLogin(!isLogin);
 
-  // Redirect to funds if already logged in
   if (isAuthenticated) {
     return <Navigate to="/funds" replace />;
   }

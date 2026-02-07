@@ -17,7 +17,6 @@ const kycController = {
         });
       }
 
-      // Find existing KYC status
       let kycStatus = await KycStatus.findOne({ where: { userId } });
 
       if (!kycStatus) {
@@ -63,7 +62,6 @@ const kycController = {
         }
       }
 
-      // Process uploaded files into a stable, persisted schema
       const uploadedAt = new Date().toISOString();
       const documents = req.files.map((file, idx) => ({
         id: `doc_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -75,7 +73,6 @@ const kycController = {
         uploadedAt,
       }));
 
-      // Update KYC with submitted documents
       const providerRef = `KYC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       await kycStatus.update({
@@ -85,9 +82,7 @@ const kycController = {
         submittedAt: new Date(),
       });
 
-      // Simulate sending to KYC provider (in production, this would be an actual API call)
       setTimeout(() => {
-        // Mock approval after 30 seconds for demo
         kycController.mockProviderUpdate(userId, providerRef, "approved");
       }, 30000);
 
@@ -162,7 +157,6 @@ const kycController = {
           };
         });
 
-      // Get user's wallet address for on-chain status check
       const user = await User.findByPk(userId);
       let onChainStatus = null;
       
@@ -292,7 +286,6 @@ const kycController = {
         });
       }
 
-      // Find KYC record by provider reference
       const kycStatus = await KycStatus.findOne({ where: { providerRef } });
 
       if (!kycStatus) {
@@ -304,7 +297,6 @@ const kycController = {
         });
       }
 
-      // Update KYC status
       const updateData = {
         status,
         reviewedAt: new Date(),
@@ -316,7 +308,6 @@ const kycController = {
 
       await kycStatus.update(updateData);
 
-      // Sync to blockchain if approved
       let blockchainSync = null;
       if (status === "approved") {
         blockchainSync = await kycController.syncKycToBlockchain(kycStatus.userId);
@@ -341,7 +332,6 @@ const kycController = {
     }
   },
 
-  // Mock provider update for demo purposes
   async mockProviderUpdate(userId, providerRef, status) {
     try {
       const kycStatus = await KycStatus.findOne({ where: { userId } });
@@ -359,7 +349,6 @@ const kycController = {
         await kycStatus.update(updateData);
         console.log(`Mock KYC update: User ${userId}, Status: ${status}`);
 
-        // Sync to blockchain if approved
         if (status === "approved") {
           await kycController.syncKycToBlockchain(userId);
         }
@@ -369,10 +358,8 @@ const kycController = {
     }
   },
 
-  // Sync KYC approval status to blockchain (ERC-3643)
   async syncKycToBlockchain(userId) {
     try {
-      // Get user's wallet address
       const user = await User.findByPk(userId);
       
       if (!user) {
@@ -385,7 +372,6 @@ const kycController = {
         return { success: false, reason: "no_wallet_address" };
       }
 
-      // Check if contract service is initialized
       if (!contractService.isInitialized()) {
         await contractService.initialize();
       }
@@ -395,32 +381,26 @@ const kycController = {
         return { success: false, reason: "contract_service_not_initialized" };
       }
 
-      // ERC-3643: Register identity and add KYC claim
       const CLAIM_KYC_VERIFIED = 2;
-      const countryCode = 840; // Default to USA, could be from user profile
+      const countryCode = 840;
       
-      // Check if identity already registered
       const isVerified = await contractService.isKycVerified(user.walletAddress);
       
       let txHash;
       if (!isVerified) {
-        // Register new identity
         console.log(`Registering identity for ${user.walletAddress} (Country: ${countryCode})...`);
         const registerTxHash = await contractService.registerIdentity(user.walletAddress, countryCode);
         console.log(`Identity registered: tx ${registerTxHash}`);
         
-        // Add KYC claim
         console.log(`Adding KYC claim for ${user.walletAddress}...`);
         txHash = await contractService.addIdentityClaim(user.walletAddress, CLAIM_KYC_VERIFIED);
         console.log(`KYC claim added: tx ${txHash}`);
       } else {
-        // Identity exists, just add/update KYC claim
         console.log(`Identity exists for ${user.walletAddress}, adding KYC claim...`);
         txHash = await contractService.setKycVerified(user.walletAddress, true);
         console.log(`KYC verified on-chain: tx ${txHash}`);
       }
 
-      // Update KYC status with on-chain transaction hash
       const kycStatus = await KycStatus.findOne({ where: { userId } });
       if (kycStatus) {
         await kycStatus.update({
@@ -436,12 +416,10 @@ const kycController = {
     }
   },
 
-  // Manually trigger blockchain sync for approved KYC
   async manualBlockchainSync(req, res) {
     try {
       const userId = req.user.id;
       
-      // Check if KYC is approved
       const kycStatus = await KycStatus.findOne({ where: { userId } });
       
       if (!kycStatus) {
@@ -456,7 +434,6 @@ const kycController = {
         });
       }
 
-      // Check if user has wallet address
       const user = await User.findByPk(userId);
       if (!user?.walletAddress) {
         return res.status(400).json({
@@ -464,7 +441,6 @@ const kycController = {
         });
       }
 
-      // Trigger sync
       const result = await kycController.syncKycToBlockchain(userId);
 
       if (result.success) {
@@ -491,7 +467,6 @@ const kycController = {
     }
   },
 
-  // Get on-chain KYC status for a wallet address
   async getOnChainKycStatus(walletAddress) {
     try {
       if (!contractService.isInitialized()) {

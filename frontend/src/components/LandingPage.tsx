@@ -6,7 +6,6 @@ export function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Redirect to funds if already logged in
   if (isAuthenticated) {
     navigate("/funds");
     return null;

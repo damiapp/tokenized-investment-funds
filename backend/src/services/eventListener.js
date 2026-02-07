@@ -18,7 +18,6 @@ class EventListener {
     }
 
     try {
-      // Ensure contract service is initialized
       if (!contractService.isInitialized()) {
         await contractService.initialize();
       }
@@ -35,13 +34,8 @@ class EventListener {
 
       console.log("=== Starting Blockchain Event Listener ===");
       
-      // Listen to IdentityRegistry events
       this.listenToIdentityEvents();
-      
-      // Listen to FundFactory events
       this.listenToFundFactoryEvents();
-      
-      // Listen to InvestmentContract events
       this.listenToInvestmentContractEvents();
 
       this.listening = true;
@@ -52,7 +46,6 @@ class EventListener {
   }
 
   listenToIdentityEvents() {
-    // Listen for IdentityRegistered events
     this.identityRegistry.on("IdentityRegistered", async (walletAddress, countryCode, event) => {
       console.log("\n[Blockchain Event] IdentityRegistered");
       console.log("  Address:", walletAddress);
@@ -67,7 +60,6 @@ class EventListener {
       }
     });
 
-    // Listen for ClaimAdded events
     this.identityRegistry.on("ClaimAdded", async (walletAddress, claimTopic, event) => {
       console.log("\n[Blockchain Event] ClaimAdded");
       console.log("  Address:", walletAddress);
@@ -82,7 +74,6 @@ class EventListener {
       }
     });
 
-    // Listen for ClaimRemoved events
     this.identityRegistry.on("ClaimRemoved", async (walletAddress, claimTopic, event) => {
       console.log("\n[Blockchain Event] ClaimRemoved");
       console.log("  Address:", walletAddress);
@@ -100,7 +91,6 @@ class EventListener {
   }
 
   listenToFundFactoryEvents() {
-    // Listen for FundCreated events
     this.fundFactory.on("FundCreated", async (fundId, tokenAddress, gp, name, symbol, targetAmount, event) => {
       console.log("\n[Blockchain Event] FundCreated");
       console.log("  Fund ID:", fundId.toString());
@@ -111,15 +101,12 @@ class EventListener {
       console.log("  Block:", event.blockNumber);
       console.log("  Tx:", event.transactionHash);
 
-      // This is already handled by the backend when creating the fund
-      // But we log it for monitoring purposes
     });
 
     console.log("  ✓ Listening to FundFactory events");
   }
 
   listenToInvestmentContractEvents() {
-    // Listen for InvestmentRecorded events
     this.investmentContract.on("InvestmentRecorded", async (fundId, investmentId, investor, amount, tokenAmount, event) => {
       console.log("\n[Blockchain Event] InvestmentRecorded");
       console.log("  Fund ID:", fundId.toString());
@@ -131,7 +118,6 @@ class EventListener {
       console.log("  Tx:", event.transactionHash);
     });
 
-    // Listen for InvestmentConfirmed events
     this.investmentContract.on("InvestmentConfirmed", async (fundId, investmentId, investor, event) => {
       console.log("\n[Blockchain Event] InvestmentConfirmed");
       console.log("  Fund ID:", fundId.toString());
@@ -141,7 +127,6 @@ class EventListener {
       console.log("  Tx:", event.transactionHash);
     });
 
-    // Listen for InvestmentCancelled events
     this.investmentContract.on("InvestmentCancelled", async (fundId, investmentId, investor, event) => {
       console.log("\n[Blockchain Event] InvestmentCancelled");
       console.log("  Fund ID:", fundId.toString());
@@ -150,7 +135,6 @@ class EventListener {
       console.log("  Block:", event.blockNumber);
     });
 
-    // Listen for CapitalContributed events
     this.investmentContract.on("CapitalContributed", async (fundId, investor, amount, event) => {
       console.log("\n[Blockchain Event] CapitalContributed");
       console.log("  Fund ID:", fundId.toString());
@@ -163,7 +147,6 @@ class EventListener {
   }
 
   async handleIdentityRegistered(walletAddress, countryCode, txHash) {
-    // Find user by wallet address
     const user = await User.findOne({
       where: { walletAddress: walletAddress.toLowerCase() }
     });
@@ -175,7 +158,6 @@ class EventListener {
 
     console.log("  → Found user:", user.email);
 
-    // Update or create KYC status
     let kycStatus = await KycStatus.findOne({ where: { userId: user.id } });
 
     if (!kycStatus) {
@@ -200,7 +182,6 @@ class EventListener {
   async handleClaimAdded(walletAddress, claimTopic, txHash) {
     const CLAIM_KYC_VERIFIED = 2;
 
-    // Find user by wallet address
     const user = await User.findOne({
       where: { walletAddress: walletAddress.toLowerCase() }
     });
@@ -212,7 +193,6 @@ class EventListener {
 
     console.log("  → Found user:", user.email);
 
-    // If KYC claim was added, update status to approved
     if (claimTopic === CLAIM_KYC_VERIFIED) {
       let kycStatus = await KycStatus.findOne({ where: { userId: user.id } });
 
@@ -232,7 +212,6 @@ class EventListener {
   async handleClaimRemoved(walletAddress, claimTopic) {
     const CLAIM_KYC_VERIFIED = 2;
 
-    // Find user by wallet address
     const user = await User.findOne({
       where: { walletAddress: walletAddress.toLowerCase() }
     });
@@ -244,7 +223,6 @@ class EventListener {
 
     console.log("  → Found user:", user.email);
 
-    // If KYC claim was removed, update status
     if (claimTopic === CLAIM_KYC_VERIFIED) {
       let kycStatus = await KycStatus.findOne({ where: { userId: user.id } });
 

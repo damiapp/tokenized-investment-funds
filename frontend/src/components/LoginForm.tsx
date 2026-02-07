@@ -14,13 +14,9 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login form submitted with:", { email, password: "***" });
     clearError();
     try {
-      console.log("Calling login function...");
       await login({ email, password });
-      console.log("Login successful!");
-      // Navigate to home page after successful login
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);

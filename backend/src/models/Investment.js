@@ -32,7 +32,6 @@ const Investment = sequelize.define(
     tokensIssued: {
       type: DataTypes.DECIMAL(20, 8),
       allowNull: true,
-      comment: "Number of fund tokens issued for this investment",
     },
     status: {
       type: DataTypes.ENUM("pending", "confirmed", "cancelled"),
@@ -41,17 +40,14 @@ const Investment = sequelize.define(
     transactionHash: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "Blockchain transaction hash",
     },
     onChainInvestmentId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "Investment ID from InvestmentContract",
     },
     onChainTxHash: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "Transaction hash for on-chain investment recording",
     },
     investedAt: {
       type: DataTypes.DATE,

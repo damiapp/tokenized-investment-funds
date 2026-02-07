@@ -13,8 +13,6 @@ export function KYCStatus() {
   useEffect(() => {
     if (user) {
       fetchKYCStatus();
-      
-      // Poll for status updates every 10 seconds if status is submitted
       const interval = setInterval(() => {
         if (kycData?.status === "submitted") {
           fetchKYCStatus();
@@ -56,7 +54,6 @@ export function KYCStatus() {
         throw new Error(errorData.error?.message || "Failed to sync to blockchain");
       }
 
-      // Refresh KYC status to show updated on-chain status
       await fetchKYCStatus();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to sync to blockchain");

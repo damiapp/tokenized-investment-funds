@@ -93,12 +93,10 @@ export function MyFunds() {
     }
   };
 
-  // GP Stats
   const totalRaised = funds.reduce((sum, f) => sum + parseFloat(f.raisedAmount || "0"), 0);
   const activeFunds = funds.filter((f) => f.status === "active").length;
   const totalInvestors = funds.reduce((sum, f) => sum + (f.investments?.length || 0), 0);
 
-  // LP Stats
   const totalInvested = investments
     .filter((inv) => inv.status !== "cancelled")
     .reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
@@ -276,7 +274,6 @@ export function MyFunds() {
       {isLoading ? (
         <div style={{ color: "#8b949e", textAlign: "center", padding: 40 }}>Loading...</div>
       ) : user?.role === "GP" ? (
-        // GP: Fund List
         funds.length === 0 ? (
           <div
             style={{
@@ -418,7 +415,6 @@ export function MyFunds() {
           </div>
         )
       ) : (
-        // LP: Investment List
         investments.length === 0 ? (
           <div
             style={{

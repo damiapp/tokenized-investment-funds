@@ -31,7 +31,6 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
     };
 
     await register(credentials);
-    // Navigate to profile after successful registration
     navigate("/profile");
   };
 

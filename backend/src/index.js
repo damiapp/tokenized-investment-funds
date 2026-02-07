@@ -26,7 +26,6 @@ app.use(
   })
 );
 
-// Routes
 const authRoutes = require("./routes/auth");
 const kycRoutes = require("./routes/kyc");
 const fundRoutes = require("./routes/funds");
@@ -61,27 +60,21 @@ app.use((err, _req, res, _next) => {
 
 const port = Number(process.env.PORT || 3001);
 
-// Contract service
 const contractService = require("./services/contractService");
 const eventListener = require("./services/eventListener");
 
-// Database connection and server start
 const startServer = async () => {
   try {
-    // Test database connection
     await sequelize.authenticate();
     console.log("Database connection established successfully.");
 
-    // Sync database models (create tables if they don't exist)
     await sequelize.sync({ alter: true });
     console.log("Database models synchronized.");
 
-    // Initialize contract service (non-blocking)
     contractService.initialize().catch((err) => {
       console.warn("Contract service initialization failed:", err.message);
     });
 
-    // Initialize event listener (non-blocking)
     setTimeout(() => {
       eventListener.initialize().catch((err) => {
         console.warn("Event listener initialization failed:", err.message);

@@ -4,7 +4,6 @@ const authMiddleware = require("../middleware/auth");
 const { Investment, Fund, User } = require("../models");
 const { Op } = require("sequelize");
 
-// GET /api/transactions - Get all transactions with filtering
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const {
@@ -23,26 +22,21 @@ router.get("/", authMiddleware, async (req, res) => {
       limit = 20,
     } = req.query;
 
-    // Build where clause for filtering
     const where = {};
 
-    // Status filter (can be multiple)
     if (status) {
       const statuses = Array.isArray(status) ? status : status.split(",");
       where.status = { [Op.in]: statuses };
     }
 
-    // Fund filter
     if (fundId) {
       where.fundId = fundId;
     }
 
-    // LP filter
     if (lpId) {
       where.lpId = lpId;
     }
 
-    // Date range filter
     if (startDate || endDate) {
       where.investedAt = {};
       if (startDate) {
@@ -53,7 +47,6 @@ router.get("/", authMiddleware, async (req, res) => {
       }
     }
 
-    // Amount range filter
     if (minAmount || maxAmount) {
       where.amount = {};
       if (minAmount) {
@@ -64,7 +57,6 @@ router.get("/", authMiddleware, async (req, res) => {
       }
     }
 
-    // Include filters for Fund and GP
     const include = [
       {
         model: Fund,
@@ -86,21 +78,15 @@ router.get("/", authMiddleware, async (req, res) => {
       },
     ];
 
-    // Search filter (search in fund name, GP email, or LP email)
     if (search) {
-      // We'll handle search via having clause after the query
-      // For now, we'll fetch and filter in memory for simplicity
     }
 
-    // Pagination
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    // Sorting
     const validSortFields = ["investedAt", "amount", "status", "createdAt"];
     const sortField = validSortFields.includes(sortBy) ? sortBy : "investedAt";
     const order = sortOrder.toLowerCase() === "asc" ? "ASC" : "DESC";
 
-    // Execute query
     const { count, rows: investments } = await Investment.findAndCountAll({
       where,
       include,
@@ -109,7 +95,6 @@ router.get("/", authMiddleware, async (req, res) => {
       offset,
     });
 
-    // Filter by search if provided
     let filteredInvestments = investments;
     let filteredCount = count;
     
@@ -131,7 +116,6 @@ router.get("/", authMiddleware, async (req, res) => {
       filteredCount = filteredInvestments.length;
     }
 
-    // Format transactions for response
     const transactions = filteredInvestments.map((inv) => ({
       id: inv.id,
       fundId: inv.fundId,
@@ -150,7 +134,6 @@ router.get("/", authMiddleware, async (req, res) => {
       createdAt: inv.createdAt,
     }));
 
-    // Calculate summary statistics
     const allInvestments = await Investment.findAll({
       where,
       include,
@@ -169,7 +152,6 @@ router.get("/", authMiddleware, async (req, res) => {
       cancelledCount: allInvestments.filter((inv) => inv.status === "cancelled").length,
     };
 
-    // Pagination info
     const totalPages = Math.ceil(filteredCount / parseInt(limit));
 
     res.json({
@@ -195,7 +177,6 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/transactions/:id - Get single transaction details
 router.get("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -262,7 +243,6 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/transactions/export/csv - Export transactions to CSV
 router.get("/export/csv", authMiddleware, async (req, res) => {
   try {
     const {
@@ -276,7 +256,6 @@ router.get("/export/csv", authMiddleware, async (req, res) => {
       maxAmount,
     } = req.query;
 
-    // Build where clause (same as main query)
     const where = {};
 
     if (status) {
@@ -325,7 +304,6 @@ router.get("/export/csv", authMiddleware, async (req, res) => {
       order: [["investedAt", "DESC"]],
     });
 
-    // Generate CSV
     const csvHeader = "Transaction ID,Date,Fund Name,Fund Symbol,GP Email,LP Email,Amount,Tokens Issued,Status,Transaction Hash\n";
     const csvRows = investments.map((inv) => {
       return [

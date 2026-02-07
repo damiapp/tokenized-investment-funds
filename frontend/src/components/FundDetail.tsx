@@ -52,12 +52,8 @@ export function FundDetail() {
   }, [id, user?.role]);
 
   useEffect(() => {
-    console.log("Portfolio useEffect triggered. investmentContractFundId:", fund?.investmentContractFundId);
     if (fund?.investmentContractFundId !== null && fund?.investmentContractFundId !== undefined) {
-      console.log("Calling fetchPortfolioCompanies...");
       fetchPortfolioCompanies(fund.investmentContractFundId);
-    } else {
-      console.log("Not fetching portfolio - investmentContractFundId is null or undefined");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fund?.investmentContractFundId]);
@@ -66,8 +62,6 @@ export function FundDetail() {
     try {
       setIsLoading(true);
       const response = await fundsApi.getById(id!);
-      console.log("Fund loaded:", response.data.fund.name);
-      console.log("investmentContractFundId:", response.data.fund.investmentContractFundId);
       setFund(response.data.fund);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load fund");
@@ -81,19 +75,16 @@ export function FundDetail() {
       const response = await kycApi.getStatus();
       setKycStatus(response.data);
     } catch {
-      // KYC status not found is okay
     }
   };
 
   const fetchPortfolioCompanies = async (fundId: number) => {
-    console.log("Fetching portfolio for fundId:", fundId);
     setPortfolioLoading(true);
     try {
       const token = localStorage.getItem("auth_token");
       const response = await axios.get(`http://localhost:3001/portfolio/fund/${fundId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Portfolio response:", response.data.data);
       setPortfolioCompanies(response.data.data.companies || []);
     } catch (err) {
       console.error("Failed to fetch portfolio companies:", err);
@@ -106,13 +97,11 @@ export function FundDetail() {
     e.preventDefault();
     if (!fund || !investAmount) return;
 
-    // Check if wallet is connected
     if (!address) {
       setInvestError("Please connect your wallet before investing. Tokens will be minted to your wallet address.");
       return;
     }
 
-    // Check if wallet address matches user's registered wallet
     if (user?.walletAddress && user.walletAddress.toLowerCase() !== address.toLowerCase()) {
       setInvestError("Connected wallet does not match your registered wallet address. Please connect the correct wallet or update your profile.");
       return;

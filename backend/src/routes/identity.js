@@ -4,7 +4,6 @@ const authMiddleware = require("../middleware/auth");
 const { User, KycStatus } = require("../models");
 const contractService = require("../services/contractService");
 
-// GET /api/identity/status - Get identity status for current user
 router.get("/status", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -29,7 +28,6 @@ router.get("/status", authMiddleware, async (req, res) => {
       });
     }
 
-    // Check on-chain identity status
     let onChainStatus = null;
     if (contractService.isInitialized()) {
       try {
@@ -61,7 +59,6 @@ router.get("/status", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/identity/register - Register identity on-chain
 router.post("/register", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -86,7 +83,6 @@ router.post("/register", authMiddleware, async (req, res) => {
       });
     }
 
-    // Check if KYC is approved
     const kycStatus = await KycStatus.findOne({ where: { userId } });
     if (!kycStatus || kycStatus.status !== "approved") {
       return res.status(403).json({
@@ -110,15 +106,12 @@ router.post("/register", authMiddleware, async (req, res) => {
       });
     }
 
-    // Register identity
-    const country = countryCode || 840; // Default to USA
+    const country = countryCode || 840;
     const txHash = await contractService.registerIdentity(walletAddress, country);
 
-    // Add KYC claim
     const CLAIM_KYC_VERIFIED = 2;
     const claimTxHash = await contractService.addIdentityClaim(walletAddress, CLAIM_KYC_VERIFIED);
 
-    // Update user wallet address if different
     if (user.walletAddress !== walletAddress) {
       await user.update({ walletAddress });
     }
@@ -144,7 +137,6 @@ router.post("/register", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/identity/claim - Add claim to identity
 router.post("/claim", authMiddleware, async (req, res) => {
   try {
     const { walletAddress, claimTopic } = req.body;
@@ -158,7 +150,6 @@ router.post("/claim", authMiddleware, async (req, res) => {
       });
     }
 
-    // Only admin can add claims (you might want to add role check here)
     if (req.user.role !== "GP") {
       return res.status(403).json({
         error: {
@@ -203,7 +194,6 @@ router.post("/claim", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/identity/:address - Get identity info for specific address
 router.get("/:address", authMiddleware, async (req, res) => {
   try {
     const { address } = req.params;

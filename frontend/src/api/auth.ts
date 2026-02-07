@@ -1,4 +1,3 @@
-// API client for backend authentication endpoints
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
 export interface User {
@@ -84,18 +83,10 @@ class ApiClient {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    console.log("API Client: login called with:", credentials);
-    try {
-      const response = await this.request<AuthResponse>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify(credentials),
-      });
-      console.log("API Client: login success, response:", response);
-      return response;
-    } catch (error) {
-      console.error("API Client: login error:", error);
-      throw error;
-    }
+    return this.request<AuthResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
   }
 
   async getCurrentUser(): Promise<{ data: User }> {
@@ -106,12 +97,10 @@ class ApiClient {
     return this.request<{ ok: boolean }>("/health");
   }
 
-  // Public method for generic requests
   async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     return this.request<T>(endpoint, options);
   }
 
-  // GET request helper
   async get<T>(endpoint: string, options: { params?: any; responseType?: string } = {}): Promise<T> {
     const { params, responseType } = options;
     let url = endpoint;

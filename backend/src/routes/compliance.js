@@ -4,7 +4,6 @@ const authMiddleware = require("../middleware/auth");
 const { Fund } = require("../models");
 const contractService = require("../services/contractService");
 
-// POST /api/compliance/configure - Configure compliance for a fund
 router.post("/configure", authMiddleware, async (req, res) => {
   try {
     const { fundId, config } = req.body;
@@ -18,7 +17,6 @@ router.post("/configure", authMiddleware, async (req, res) => {
       });
     }
 
-    // Get fund and verify ownership
     const fund = await Fund.findByPk(fundId);
     if (!fund) {
       return res.status(404).json({
@@ -60,10 +58,8 @@ router.post("/configure", authMiddleware, async (req, res) => {
       });
     }
 
-    // Configure compliance on-chain
     const txHashes = await contractService.configureCompliance(fund.contractAddress, config);
 
-    // Save config to database
     await fund.update({
       complianceConfig: config,
       complianceEnabled: true,
@@ -89,7 +85,6 @@ router.post("/configure", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/compliance/check - Check if transfer would be compliant
 router.get("/check", authMiddleware, async (req, res) => {
   try {
     const { token, from, to, amount } = req.query;
@@ -145,7 +140,6 @@ router.get("/check", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/compliance/:fundId - Get compliance config for a fund
 router.get("/:fundId", authMiddleware, async (req, res) => {
   try {
     const { fundId } = req.params;
@@ -179,7 +173,6 @@ router.get("/:fundId", authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/compliance/:fundId/enable - Enable/disable compliance
 router.put("/:fundId/enable", authMiddleware, async (req, res) => {
   try {
     const { fundId } = req.params;

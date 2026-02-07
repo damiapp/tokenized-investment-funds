@@ -43,19 +43,13 @@ export function MyInvestments() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      
-      // Always fetch portfolio for on-chain data and summary
       const portfolioResponse = await investmentsApi.getPortfolio();
       setSummary(portfolioResponse.data.summary);
       setOnChain(portfolioResponse.data.onChain);
-      
-      // Fetch investments based on filter
       if (statusFilter) {
-        // Specific status filter
         const response = await investmentsApi.getAll({ status: statusFilter });
         setInvestments(response.data.investments);
       } else {
-        // "All" - fetch all investments without status filter
         const response = await investmentsApi.getAll({});
         setInvestments(response.data.investments);
       }

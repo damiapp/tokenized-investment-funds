@@ -222,13 +222,11 @@ const fundController = {
         }
       });
 
-      // Deploy token contract when activating fund
       let tokenDeployment = null;
       if (updates.status === "active" && fund.status !== "active" && !fund.contractAddress) {
         tokenDeployment = await fundController.deployTokenForFund(fund);
         if (tokenDeployment.success) {
           updates.contractAddress = tokenDeployment.address;
-          // Use provided tokenSymbol or generate one
           if (!updates.tokenSymbol && !fund.tokenSymbol) {
             updates.tokenSymbol = tokenDeployment.symbol;
           }
@@ -307,10 +305,8 @@ const fundController = {
     }
   },
 
-  // Deploy a token contract for a fund via FundFactory
   async deployTokenForFund(fund) {
     try {
-      // Initialize contract service if needed
       if (!contractService.isInitialized()) {
         await contractService.initialize();
       }
@@ -320,14 +316,12 @@ const fundController = {
         return { success: false, reason: "contract_service_not_initialized" };
       }
 
-      // Get GP wallet address
       const gp = await fund.getGeneralPartner();
       if (!gp?.walletAddress) {
         console.warn("Cannot deploy token: GP has no wallet address");
         return { success: false, reason: "gp_no_wallet" };
       }
 
-      // Auto-approve GP if not already approved (for demo purposes)
       try {
         const isApproved = await contractService.isApprovedGP(gp.walletAddress);
         if (!isApproved) {
@@ -340,11 +334,9 @@ const fundController = {
         return { success: false, reason: "gp_approval_failed", error: error.message };
       }
 
-      // Generate token name and symbol from fund name
       const tokenName = `${fund.name} Token`;
       const tokenSymbol = fund.tokenSymbol || fund.name.substring(0, 4).toUpperCase().replace(/\s/g, "");
 
-      // Use FundFactory to deploy the token
       const result = await contractService.deployFundViaFactory(
         tokenName,
         tokenSymbol,
@@ -352,7 +344,6 @@ const fundController = {
         fund.minimumInvestment || 1000 // Default minimum investment if not set
       );
 
-      // Update fund with on-chain fund ID
       await fund.update({
         onChainFundId: result.fundId,
       });
@@ -427,7 +418,6 @@ const fundController = {
     }
   },
 
-  // Discover funds from on-chain FundFactory
   async discoverFunds(req, res) {
     try {
       const { offset = 0, limit = 10 } = req.query;
@@ -473,7 +463,6 @@ const fundController = {
     }
   },
 
-  // Get on-chain fund by ID
   async getOnChainFund(req, res) {
     try {
       const { fundId } = req.params;
@@ -508,7 +497,6 @@ const fundController = {
     }
   },
 
-  // Get funds by GP address
   async getFundsByGP(req, res) {
     try {
       const { gpAddress } = req.params;
@@ -528,7 +516,6 @@ const fundController = {
 
       const fundIds = await contractService.getFundsByGP(gpAddress);
 
-      // Fetch full fund details for each ID
       const funds = await Promise.all(
         fundIds.map(id => contractService.getOnChainFund(id))
       );
@@ -551,7 +538,6 @@ const fundController = {
     }
   },
 
-  // Get all investors in a fund (for GP)
   async getFundInvestors(req, res) {
     try {
       const { fundId } = req.params;
@@ -626,7 +612,6 @@ const fundController = {
     }
   },
 
-  // Get fund analytics (for GP)
   async getFundAnalytics(req, res) {
     try {
       const { fundId } = req.params;

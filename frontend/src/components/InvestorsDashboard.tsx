@@ -88,7 +88,6 @@ const InvestorsDashboard: React.FC = () => {
 
     try {
       if (selectedFund.id === 'all') {
-        // Fetch investors from all funds and aggregate
         const allInvestors: Investor[] = [];
         for (const fund of myFunds) {
           const response = await axios.get(
@@ -130,7 +129,6 @@ const InvestorsDashboard: React.FC = () => {
 
   const handleConfirmAndMint = async (investmentId: string) => {
     try {
-      // Confirm investment (tokens are automatically minted by backend)
       await axios.put(
         `http://localhost:3001/investments/${investmentId}/status`,
         { status: 'confirmed' },
@@ -165,7 +163,6 @@ const InvestorsDashboard: React.FC = () => {
 
     try {
       if (selectedFund.id === 'all') {
-        // Aggregate analytics from all funds
         let totalTarget = 0;
         let totalRaised = 0;
         let totalInvestors = 0;

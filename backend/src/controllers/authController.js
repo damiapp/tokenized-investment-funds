@@ -7,7 +7,6 @@ const authController = {
     try {
       const { email, password, role, walletAddress } = req.body;
 
-      // Validation
       if (!email || !password || !role) {
         return res.status(400).json({
           error: {
@@ -35,7 +34,6 @@ const authController = {
         });
       }
 
-      // Check if user already exists
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
         return res.status(409).json({
@@ -46,7 +44,6 @@ const authController = {
         });
       }
 
-      // Validate wallet address if provided
       if (walletAddress) {
         const walletRegex = /^0x[a-fA-F0-9]{40}$/;
         if (!walletRegex.test(walletAddress)) {
@@ -59,7 +56,6 @@ const authController = {
         }
       }
 
-      // Create user
       const passwordHash = await hashPassword(password);
       const user = await User.create({
         email,
@@ -68,16 +64,13 @@ const authController = {
         walletAddress: walletAddress || null,
       });
 
-      // Create KYC status record
       const kycStatus = await KycStatus.create({
         userId: user.id,
         status: "pending",
       });
 
-      // Generate token
       const token = generateToken(user.id);
 
-      // Return user data with KYC status
       const userResponse = {
         id: user.id,
         email: user.email,
@@ -110,7 +103,6 @@ const authController = {
     try {
       const { email, password } = req.body;
 
-      // Validation
       if (!email || !password) {
         return res.status(400).json({
           error: {
@@ -120,7 +112,6 @@ const authController = {
         });
       }
 
-      // Find user
       const user = await User.findOne({ where: { email } });
       if (!user) {
         return res.status(401).json({
@@ -131,7 +122,6 @@ const authController = {
         });
       }
 
-      // Verify password
       const isValidPassword = await comparePassword(password, user.passwordHash);
       if (!isValidPassword) {
         return res.status(401).json({
@@ -142,16 +132,13 @@ const authController = {
         });
       }
 
-      // Generate token
       const token = generateToken(user.id);
 
-      // Get KYC status
       const kycStatus = await KycStatus.findOne({
         where: { userId: user.id },
         attributes: ["status", "updatedAt"],
       });
 
-      // Return user data with KYC status
       const userResponse = {
         id: user.id,
         email: user.email,
@@ -181,7 +168,6 @@ const authController = {
     try {
       const user = req.user;
       
-      // Get KYC status
       const kycStatus = await KycStatus.findOne({
         where: { userId: user.id },
         attributes: ["status", "updatedAt"],
@@ -214,7 +200,6 @@ const authController = {
       const { walletAddress } = req.body;
       const user = req.user;
 
-      // Validate wallet address
       if (!walletAddress) {
         return res.status(400).json({
           error: {
@@ -234,7 +219,6 @@ const authController = {
         });
       }
 
-      // Update user's wallet address
       await user.update({ walletAddress });
 
       res.status(200).json({

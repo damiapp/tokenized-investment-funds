@@ -37,7 +37,6 @@ export function UserProfile() {
     }
   };
 
-  // Ensure KYC data exists
   const kycData = user.kyc || { status: "pending", updatedAt: new Date().toISOString() };
 
   const handleKYCSubmit = () => {

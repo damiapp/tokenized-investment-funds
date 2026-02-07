@@ -3,7 +3,6 @@ const contractService = require("../services/contractService");
 
 const router = express.Router();
 
-// GET /health - Basic health check
 router.get("/", async (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -12,10 +11,8 @@ router.get("/", async (req, res) => {
   });
 });
 
-// GET /health/blockchain - Blockchain connection status
 router.get("/blockchain", async (req, res) => {
   try {
-    // Initialize if not already
     if (!contractService.isInitialized()) {
       await contractService.initialize();
     }
@@ -32,7 +29,6 @@ router.get("/blockchain", async (req, res) => {
       });
     }
 
-    // Get current gas price
     let gasPrice = null;
     try {
       const gasPriceWei = await contractService.getGasPrice();

@@ -89,7 +89,6 @@ const investmentController = {
         status: "pending",
       });
 
-      // Record investment on-chain if fund has onChainFundId
       if (fund.onChainFundId !== null && fund.onChainFundId !== undefined) {
         try {
           const lp = await User.findByPk(lpId);
@@ -294,7 +293,6 @@ const investmentController = {
       const updates = { status };
       let tokenMintResult = null;
 
-      // Mint tokens when confirming investment
       if (status === "confirmed" && investment.status !== "confirmed") {
         tokenMintResult = await investmentController.mintTokensForInvestment(investment);
         
@@ -324,13 +322,11 @@ const investmentController = {
     }
   },
 
-  // Get portfolio with on-chain token balances
   async getPortfolio(req, res) {
     try {
       const userId = req.user.id;
       const user = req.user;
 
-      // Get all confirmed investments for this user
       const investments = await Investment.findAll({
         where: { lpId: userId, status: "confirmed" },
         include: [
@@ -349,7 +345,6 @@ const investmentController = {
         order: [["investedAt", "DESC"]],
       });
 
-      // Get on-chain token balances if user has wallet
       let onChainBalances = [];
       let onChainError = null;
 
@@ -360,7 +355,6 @@ const investmentController = {
           }
 
           if (contractService.isInitialized()) {
-            // Get unique fund token contracts
             const fundContracts = new Map();
             const fundsWithoutContracts = [];
             
@@ -373,7 +367,6 @@ const investmentController = {
                   fundId: inv.fund.id,
                 });
               } else if (inv.fund && !inv.fund.contractAddress && inv.status === 'confirmed') {
-                // Track funds without contract addresses
                 if (!fundsWithoutContracts.find(f => f.fundId === inv.fund.id)) {
                   fundsWithoutContracts.push({
                     address: null,
@@ -387,7 +380,6 @@ const investmentController = {
               }
             }
 
-            // Fetch balance for each fund token
             for (const [address, info] of fundContracts) {
               try {
                 const balance = await contractService.getFundTokenBalance(user.walletAddress, address);
@@ -405,10 +397,8 @@ const investmentController = {
               }
             }
             
-            // Add funds without contracts to the list
             onChainBalances.push(...fundsWithoutContracts);
 
-            // Also get default token balance
             try {
               const defaultBalance = await contractService.getFundTokenBalance(user.walletAddress);
               onChainBalances.unshift({
@@ -430,7 +420,6 @@ const investmentController = {
         }
       }
 
-      // Calculate totals from database records
       const totalInvested = investments.reduce(
         (sum, inv) => sum + parseFloat(inv.amount),
         0
@@ -466,7 +455,6 @@ const investmentController = {
     }
   },
 
-  // Explicit mint endpoint (tokens are usually minted during status update to 'confirmed')
   async mint(req, res) {
     try {
       const { id } = req.params;
@@ -505,7 +493,6 @@ const investmentController = {
         });
       }
 
-      // Check if tokens were already minted
       if (investment.tokensIssued && investment.transactionHash) {
         return res.status(200).json({
           data: {
@@ -516,7 +503,6 @@ const investmentController = {
         });
       }
 
-      // Mint tokens
       const tokenMintResult = await investmentController.mintTokensForInvestment(investment);
 
       if (tokenMintResult.success) {
@@ -544,7 +530,6 @@ const investmentController = {
     }
   },
 
-  // Mint fund tokens for a confirmed investment (ERC-3643 compliant)
   async mintTokensForInvestment(investment) {
     try {
       const lp = investment.limitedPartner;
@@ -555,7 +540,6 @@ const investmentController = {
         return { success: false, reason: "no_wallet_address" };
       }
 
-      // Initialize contract service if needed
       if (!contractService.isInitialized()) {
         await contractService.initialize();
       }
@@ -565,18 +549,14 @@ const investmentController = {
         return { success: false, reason: "contract_service_not_initialized" };
       }
 
-      // ERC-3643: Check if investor identity is verified
       const isVerified = await contractService.isKycVerified(lp.walletAddress);
       if (!isVerified) {
         console.warn(`Cannot mint tokens: LP ${lp.walletAddress} identity not verified on-chain`);
         return { success: false, reason: "identity_not_verified" };
       }
 
-      // Calculate tokens to issue (1 token = $1 for simplicity)
-      // In production, this would use the fund's token price
       const tokensToMint = parseFloat(investment.amount);
 
-      // ERC-3643: Check compliance before minting (if fund has specific token contract)
       if (fund?.contractAddress) {
         try {
           const compliance = await contractService.checkTransferCompliance(
@@ -601,7 +581,6 @@ const investmentController = {
 
       let txHash;
       
-      // Use fund-specific token contract if available, otherwise use default
       if (fund?.contractAddress) {
         txHash = await contractService.mintFundTokensForFund(
           fund.contractAddress,
@@ -610,7 +589,6 @@ const investmentController = {
         );
         console.log(`Minted ${tokensToMint} ${fund.tokenSymbol || 'tokens'} to ${lp.walletAddress} (fund: ${fund.name}): tx ${txHash}`);
       } else {
-        // Fallback to default token contract
         txHash = await contractService.mintFundTokens(lp.walletAddress, tokensToMint);
         console.log(`Minted ${tokensToMint} DFT tokens to ${lp.walletAddress}: tx ${txHash}`);
       }

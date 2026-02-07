@@ -40,12 +40,10 @@ const Fund = sequelize.define(
     managementFee: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
-      comment: "Annual management fee percentage",
     },
     performanceFee: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
-      comment: "Performance fee percentage",
     },
     investmentStrategy: {
       type: DataTypes.TEXT,
@@ -66,17 +64,14 @@ const Fund = sequelize.define(
     contractAddress: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "Smart contract address on blockchain",
     },
     onChainFundId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "Fund ID from FundFactory contract",
     },
     investmentContractFundId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "Fund ID from InvestmentContract (used for portfolio lookups)",
     },
     tokenSymbol: {
       type: DataTypes.STRING(10),
@@ -86,12 +81,10 @@ const Fund = sequelize.define(
       type: DataTypes.JSON,
       allowNull: false,
       defaultValue: [],
-      comment: "Array of on-chain portfolio company IDs associated with this fund",
     },
     terms: {
       type: DataTypes.JSON,
       allowNull: true,
-      comment: "Additional terms and conditions",
     },
   },
   {

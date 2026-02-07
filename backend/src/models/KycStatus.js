@@ -45,12 +45,10 @@ const KycStatus = sequelize.define("KycStatus", {
   onChainTxHash: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: "Transaction hash of on-chain KYC verification",
   },
   onChainSyncedAt: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: "When KYC was synced to blockchain",
   },
   updatedAt: {
     type: DataTypes.DATE,
@@ -59,7 +57,6 @@ const KycStatus = sequelize.define("KycStatus", {
   },
 });
 
-// Set up associations
 User.hasOne(KycStatus, { foreignKey: "userId", as: "kyc" });
 KycStatus.belongsTo(User, { foreignKey: "userId", as: "user" });
 

@@ -41,7 +41,6 @@ const PortfolioManagement: React.FC = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'portfolio' | 'add' | 'all'>('portfolio');
 
-  // Form states
   const [companyForm, setCompanyForm] = useState({
     name: '',
     industry: '',
@@ -70,7 +69,6 @@ const PortfolioManagement: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const allFunds = response.data.data.funds || [];
-      // Only show funds that are deployed (have investmentContractFundId)
       const deployedFunds = allFunds.filter((f: Fund) => f.investmentContractFundId !== null && f.investmentContractFundId !== undefined);
       setMyFunds(deployedFunds);
       if (deployedFunds.length > 0) {
