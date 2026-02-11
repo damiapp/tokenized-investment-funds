@@ -40,6 +40,4 @@ Thumbs.db
 *.swp
 
 # Documentation (except README.md)
-*.md
-!README.md
 docs/

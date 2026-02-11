@@ -16,24 +16,24 @@ const API_BASE_URL = "http://localhost:3001";
  */
 
 async function seed() {
-  console.log("🌱 Starting comprehensive seed...\n");
+  console.log("Starting comprehensive seed...\n");
 
   try {
     // ============================================
     // 1. INITIALIZE CONTRACT SERVICE
     // ============================================
-    console.log("📋 Step 1: Initializing contract service...");
+    console.log("Step 1: Initializing contract service...");
     if (!contractService.isInitialized()) {
       await contractService.initialize();
-      console.log("  ✅ Contract service initialized\n");
+      console.log("  Contract service initialized\n");
     } else {
-      console.log("  ✓ Contract service already initialized\n");
+      console.log("  Contract service already initialized\n");
     }
 
     // ============================================
     // 2. CREATE USERS
     // ============================================
-    console.log("📋 Step 2: Creating users...");
+    console.log("Step 2: Creating users...");
     
     // GP User
     const gpPassword = await hashPassword("password123");
@@ -48,9 +48,9 @@ async function seed() {
     
     if (gpCreated) {
       await KycStatus.create({ userId: gp.id, status: "approved" });
-      console.log("  ✅ GP created: gp@demo.com");
+      console.log("  GP created: gp@demo.com");
     } else {
-      console.log("  ⏭️  GP exists: gp@demo.com");
+      console.log("  GP exists: gp@demo.com");
     }
 
     // Approve GP in FundFactory
@@ -59,12 +59,12 @@ async function seed() {
         const isApproved = await contractService.isApprovedGP(gp.walletAddress);
         if (!isApproved) {
           await contractService.approveGP(gp.walletAddress);
-          console.log("  ✅ GP approved in FundFactory");
+          console.log("  GP approved in FundFactory");
         } else {
-          console.log("  ✓ GP already approved in FundFactory");
+          console.log("  GP already approved in FundFactory");
         }
       } catch (error) {
-        console.warn("  ⚠️  Could not approve GP:", error.message);
+        console.warn("  Could not approve GP:", error.message);
       }
     }
 
@@ -101,9 +101,9 @@ async function seed() {
 
       if (lpCreated) {
         await KycStatus.create({ userId: lp.id, status: lpData.kycStatus });
-        console.log(`  ✅ LP created: ${lpData.email} (KYC: ${lpData.kycStatus})`);
+        console.log(`  LP created: ${lpData.email} (KYC: ${lpData.kycStatus})`);
       } else {
-        console.log(`  ⏭️  LP exists: ${lpData.email}`);
+        console.log(`  LP exists: ${lpData.email}`);
       }
 
       createdLPs.push(lp);
@@ -119,12 +119,12 @@ async function seed() {
           if (!isVerified) {
             await contractService.registerIdentity(lp.walletAddress, 840); // USA country code
             await contractService.addKYCClaim(lp.walletAddress);
-            console.log(`  ✅ Identity registered: ${lp.email}`);
+            console.log(`  Identity registered: ${lp.email}`);
           } else {
-            console.log(`  ✓ Identity already registered: ${lp.email}`);
+            console.log(`  Identity already registered: ${lp.email}`);
           }
         } catch (error) {
-          console.warn(`  ⚠️  Identity registration failed for ${lp.email}: ${error.message}`);
+          console.warn(`  Identity registration failed for ${lp.email}: ${error.message}`);
         }
       }
     }
@@ -134,7 +134,7 @@ async function seed() {
     // ============================================
     // 3. CREATE PORTFOLIO COMPANIES
     // ============================================
-    console.log("📋 Step 3: Creating portfolio companies...");
+    console.log("Step 3: Creating portfolio companies...");
 
     const companies = [
       { name: "NeuralTech AI", industry: "Artificial Intelligence", country: "USA", foundedYear: 2020 },
@@ -176,7 +176,7 @@ async function seed() {
 
       for (const company of companies) {
         if (companyIdMap.has(company.name)) {
-          console.log(`  ⏭️  Company exists: ${company.name} (ID: ${companyIdMap.get(company.name)})`);
+          console.log(`  Company exists: ${company.name} (ID: ${companyIdMap.get(company.name)})`);
           skipCount++;
           continue;
         }
@@ -190,21 +190,21 @@ async function seed() {
           
           const companyId = response.data.data.companyId;
           companyIdMap.set(company.name, companyId);
-          console.log(`  ✅ Company: ${company.name} (ID: ${companyId})`);
+          console.log(`  Company: ${company.name} (ID: ${companyId})`);
           successCount++;
         } catch (err) {
           if (err.response?.status === 409 || err.response?.data?.error?.message?.includes("already exists")) {
-            console.log(`  ⏭️  Company exists: ${company.name}`);
+            console.log(`  Company exists: ${company.name}`);
             skipCount++;
           } else {
-            console.error(`  ❌ Failed: ${company.name} - ${err.response?.data?.error?.message || err.message}`);
+            console.error(`  Failed: ${company.name} - ${err.response?.data?.error?.message || err.message}`);
           }
         }
       }
 
-      console.log(`  📊 ${successCount} created, ${skipCount} skipped, ${companyIdMap.size} total available`);
+      console.log(`  ${successCount} created, ${skipCount} skipped, ${companyIdMap.size} total available`);
     } catch (error) {
-      console.error(`  ❌ Portfolio company seeding failed: ${error.message}`);
+      console.error(`  Portfolio company seeding failed: ${error.message}`);
     }
 
     console.log();
@@ -212,7 +212,7 @@ async function seed() {
     // ============================================
     // 4. CREATE AND DEPLOY FUNDS
     // ============================================
-    console.log("📋 Step 4: Creating and deploying funds...");
+    console.log("Step 4: Creating and deploying funds...");
 
     const fundsData = [
       {
@@ -293,15 +293,15 @@ async function seed() {
       });
 
       if (fundCreated) {
-        console.log(`  ✅ Fund created: ${fundData.name}`);
+        console.log(`  Fund created: ${fundData.name}`);
       } else {
-        console.log(`  ⏭️  Fund exists: ${fundData.name}`);
+        console.log(`  Fund exists: ${fundData.name}`);
       }
 
       // Deploy to blockchain if specified
       if (fundData.deploy && fundCreated) {
         try {
-          console.log(`  → Deploying ${fundData.name} to blockchain...`);
+          console.log(`  Deploying ${fundData.name} to blockchain...`);
           const deployResult = await contractService.deployFundViaFactory(
             fundData.name,
             fundData.tokenSymbol,
@@ -314,11 +314,11 @@ async function seed() {
             onChainFundId: deployResult.fundId,
           });
 
-          console.log(`  ✅ Deployed: Fund ID ${deployResult.fundId}, Token: ${deployResult.tokenAddress.slice(0, 10)}...`);
+          console.log(`  Deployed: Fund ID ${deployResult.fundId}, Token: ${deployResult.tokenAddress.slice(0, 10)}...`);
 
           // Register fund in InvestmentContract
           try {
-            console.log(`  → Registering fund in InvestmentContract...`);
+            console.log(`  Registering fund in InvestmentContract...`);
             const investmentContractResult = await contractService.registerFundInInvestmentContract(
               deployResult.tokenAddress,
               gp.walletAddress,
@@ -331,14 +331,14 @@ async function seed() {
               investmentContractFundId: investmentContractResult.fundId,
             });
             
-            console.log(`  ✅ Registered in InvestmentContract (Fund ID: ${investmentContractResult.fundId})`);
+            console.log(`  Registered in InvestmentContract (Fund ID: ${investmentContractResult.fundId})`);
           } catch (regError) {
-            console.error(`  ⚠️  InvestmentContract registration failed: ${regError.message}`);
+            console.error(`  InvestmentContract registration failed: ${regError.message}`);
           }
 
           // Record portfolio company investments
           if (fundData.portfolioCompanies && fundData.portfolioCompanies.length > 0) {
-            console.log(`  → Recording ${fundData.portfolioCompanies.length} portfolio investments...`);
+            console.log(`  Recording ${fundData.portfolioCompanies.length} portfolio investments...`);
             // Reload fund to get the updated investmentContractFundId
             await fund.reload();
             
@@ -353,17 +353,17 @@ async function seed() {
                     portfolioInv.equityPercentage,
                     portfolioInv.valuation
                   );
-                  console.log(`    ✅ ${portfolioInv.name}: $${portfolioInv.amount.toLocaleString()} (${portfolioInv.equityPercentage}% equity)`);
+                  console.log(`    ${portfolioInv.name}: $${portfolioInv.amount.toLocaleString()} (${portfolioInv.equityPercentage}% equity)`);
                 } catch (invError) {
-                  console.error(`    ❌ Failed to record investment in ${portfolioInv.name}: ${invError.message}`);
+                  console.error(`    Failed to record investment in ${portfolioInv.name}: ${invError.message}`);
                 }
               } else {
-                console.warn(`    ⚠️  Skipping ${portfolioInv.name}: company ID or fund ID not available`);
+                console.warn(`    Skipping ${portfolioInv.name}: company ID or fund ID not available`);
               }
             }
           }
         } catch (error) {
-          console.error(`  ❌ Deployment failed: ${error.message}`);
+          console.error(`  Deployment failed: ${error.message}`);
         }
       }
 
@@ -380,7 +380,7 @@ async function seed() {
     // ============================================
     // 5. CREATE LP INVESTMENTS IN FUNDS
     // ============================================
-    console.log("📋 Step 5: Creating LP investments in funds...");
+    console.log("Step 5: Creating LP investments in funds...");
 
     const investmentsData = [
       // Tech Ventures Fund investments
@@ -429,26 +429,26 @@ async function seed() {
 
             // Mint tokens to LP wallet
             try {
-              console.log(`  → Minting ${invData.amount} tokens to ${lp.email}...`);
+              console.log(`  Minting ${invData.amount} tokens to ${lp.email}...`);
               await contractService.mintFundTokensForFund(
                 fund.contractAddress,
                 lp.walletAddress,
                 invData.amount
               );
-              console.log(`  ✅ Investment: ${lp.email} → ${fund.name} ($${invData.amount.toLocaleString()}) [On-chain ID: ${result.investmentId}, Tokens minted]`);
+              console.log(`  Investment: ${lp.email} -> ${fund.name} ($${invData.amount.toLocaleString()}) [On-chain ID: ${result.investmentId}, Tokens minted]`);
             } catch (mintError) {
-              console.error(`  ⚠️  Token minting failed: ${mintError.message}`);
-              console.log(`  ✅ Investment: ${lp.email} → ${fund.name} ($${invData.amount.toLocaleString()}) [On-chain ID: ${result.investmentId}, No tokens]`);
+              console.error(`  Token minting failed: ${mintError.message}`);
+              console.log(`  Investment: ${lp.email} -> ${fund.name} ($${invData.amount.toLocaleString()}) [On-chain ID: ${result.investmentId}, No tokens]`);
             }
           } catch (error) {
-            console.error(`  ❌ On-chain recording failed: ${error.message}`);
-            console.log(`  ✅ Investment: ${lp.email} → ${fund.name} ($${invData.amount.toLocaleString()}) [DB only]`);
+            console.error(`  On-chain recording failed: ${error.message}`);
+            console.log(`  Investment: ${lp.email} -> ${fund.name} ($${invData.amount.toLocaleString()}) [DB only]`);
           }
         } else {
-          console.log(`  ✅ Investment: ${lp.email} → ${fund.name} ($${invData.amount.toLocaleString()}) [${invData.status}]`);
+          console.log(`  Investment: ${lp.email} -> ${fund.name} ($${invData.amount.toLocaleString()}) [${invData.status}]`);
         }
       } else {
-        console.log(`  ⏭️  Investment exists: ${lp.email} → ${fund.name}`);
+        console.log(`  Investment exists: ${lp.email} -> ${fund.name}`);
       }
     }
 
@@ -457,9 +457,9 @@ async function seed() {
     // ============================================
     // SUMMARY
     // ============================================
-    console.log("✨ Seed complete!\n");
+    console.log("Seed complete!\n");
     console.log("═══════════════════════════════════════════════════");
-    console.log("📧 DEMO ACCOUNTS");
+    console.log("DEMO ACCOUNTS");
     console.log("═══════════════════════════════════════════════════");
     console.log("GP:   gp@demo.com / password123");
     console.log("LP1:  lp1@demo.com / password123 (KYC: approved)");
@@ -467,7 +467,7 @@ async function seed() {
     console.log("LP3:  lp3@demo.com / password123 (KYC: pending)");
     console.log();
     console.log("═══════════════════════════════════════════════════");
-    console.log("🔐 WALLET ADDRESSES (Hardhat Network)");
+    console.log("WALLET ADDRESSES (Hardhat Network)");
     console.log("═══════════════════════════════════════════════════");
     console.log("GP:   0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     console.log("LP1:  0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
@@ -475,11 +475,11 @@ async function seed() {
     console.log("LP3:  0x90F79bf6EB2c4f870365E785982E1f101E93b906");
     console.log();
     console.log("═══════════════════════════════════════════════════");
-    console.log("💼 FUNDS");
+    console.log("FUNDS");
     console.log("═══════════════════════════════════════════════════");
     for (const fund of createdFunds) {
       await fund.reload();
-      const deployed = fund.contractAddress ? "✅ Deployed" : "❌ Not deployed";
+      const deployed = fund.contractAddress ? "Deployed" : "Not deployed";
       console.log(`${fund.name}`);
       console.log(`  Status: ${deployed}`);
       console.log(`  Raised: $${parseFloat(fund.raisedAmount).toLocaleString()} / $${parseFloat(fund.targetAmount).toLocaleString()}`);
@@ -492,7 +492,7 @@ async function seed() {
     console.log("═══════════════════════════════════════════════════\n");
 
   } catch (error) {
-    console.error("❌ Seed failed:", error);
+    console.error("Seed failed:", error);
     throw error;
   }
 }
@@ -506,16 +506,16 @@ if (require.main === module) {
   sequelize
     .authenticate()
     .then(() => {
-      console.log("🔌 Database connected\n");
+      console.log("Database connected\n");
       return sequelize.sync();
     })
     .then(() => seed())
     .then(() => {
-      console.log("✅ Seed completed successfully");
+      console.log("Seed completed successfully");
       process.exit(0);
     })
     .catch((err) => {
-      console.error("❌ Seed failed:", err);
+      console.error("Seed failed:", err);
       process.exit(1);
     });
 }

@@ -131,7 +131,7 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
             alignItems: "flex-start",
             gap: 12,
           }}>
-            <span style={{ fontSize: 20 }}>⚠️</span>
+            <span style={{ fontSize: 20 }}></span>
             <div>
               <div style={{ color: "#f0883e", fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
                 Wallet Not Connected
@@ -155,7 +155,7 @@ export function KYCForm({ onKYCSubmitted }: KYCFormProps) {
             alignItems: "center",
             gap: 12,
           }}>
-            <span style={{ fontSize: 16 }}>✓</span>
+            <span style={{ fontSize: 16 }}></span>
             <div>
               <div style={{ color: "#238636", fontSize: 13 }}>
                 Wallet connected: <code style={{ fontFamily: "monospace" }}>{address.slice(0, 6)}...{address.slice(-4)}</code>

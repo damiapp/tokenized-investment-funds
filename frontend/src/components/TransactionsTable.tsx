@@ -82,7 +82,7 @@ export function TransactionsTable({
           borderRadius: 8,
         }}
       >
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
+        <div style={{ fontSize: 48, marginBottom: 16 }}></div>
         <p style={{ color: "#cccccc", fontSize: 16, marginBottom: 8 }}>
           No transactions found
         </p>
@@ -254,7 +254,7 @@ export function TransactionsTable({
                     }}
                     title="Copy full ID"
                   >
-                    📋
+                    Copy
                   </button>
                 </div>
               </td>

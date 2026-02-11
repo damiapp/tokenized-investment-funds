@@ -11,6 +11,5 @@ router.get("/", investmentController.getAll);
 router.get("/portfolio", investmentController.getPortfolio);
 router.get("/:id", investmentController.getById);
 router.put("/:id/status", investmentController.updateStatus);
-router.post("/:id/mint", investmentController.mint);
 
 module.exports = router;

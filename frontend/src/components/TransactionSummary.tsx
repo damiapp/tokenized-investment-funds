@@ -24,37 +24,37 @@ export function TransactionSummary({ summary }: TransactionSummaryProps) {
       label: "Total Transactions",
       value: summary.totalTransactions.toString(),
       color: "#0078d4",
-      icon: "📊",
+      icon: "#",
     },
     {
       label: "Total Invested",
       value: formatCurrency(summary.totalInvested),
       color: "#0078d4",
-      icon: "💰",
+      icon: "$",
     },
     {
       label: "Total Tokens Issued",
       value: formatNumber(summary.totalTokensIssued),
       color: "#0078d4",
-      icon: "💎",
+      icon: "T",
     },
     {
       label: "Confirmed",
       value: summary.confirmedCount.toString(),
       color: "#107c10",
-      icon: "✅",
+      icon: "+",
     },
     {
       label: "Pending",
       value: summary.pendingCount.toString(),
       color: "#ffc83d",
-      icon: "⏳",
+      icon: "~",
     },
     {
       label: "Cancelled",
       value: summary.cancelledCount.toString(),
       color: "#e81123",
-      icon: "❌",
+      icon: "x",
     },
   ];
 

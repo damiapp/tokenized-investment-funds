@@ -145,7 +145,7 @@ export function MyInvestments() {
               
               {onChain.error ? (
                 <div style={{ color: "#f0883e", fontSize: 14 }}>
-                  ⚠️ {onChain.error}
+                  {onChain.error}
                 </div>
               ) : onChain.balances && onChain.balances.length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
@@ -168,7 +168,7 @@ export function MyInvestments() {
                           {parseFloat(token.balance).toLocaleString()} {token.symbol}
                         </div>
                       ) : token.error ? (
-                        <div style={{ color: "#f0883e", fontSize: 12 }}>⚠️ Error</div>
+                        <div style={{ color: "#f0883e", fontSize: 12 }}>Error</div>
                       ) : (
                         <div style={{ color: "#8b949e", fontSize: 14 }}>--</div>
                       )}
@@ -187,7 +187,7 @@ export function MyInvestments() {
             </div>
           ) : (
             <div style={{ color: "#f0883e", fontSize: 14 }}>
-              ⚠️ Connect your wallet to view on-chain token balances
+              Connect your wallet to view on-chain token balances
             </div>
           )}
         </div>

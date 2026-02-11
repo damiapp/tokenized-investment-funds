@@ -102,13 +102,13 @@ export function KYCStatus() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "approved":
-        return "✅";
+        return "";
       case "rejected":
-        return "❌";
+        return "";
       case "submitted":
-        return "⏳";
+        return "";
       default:
-        return "📋";
+        return "";
     }
   };
 
@@ -185,7 +185,7 @@ export function KYCStatus() {
           textAlign: "center",
         }}>
           <div style={{ color: "#8b949e", fontSize: 16, marginBottom: 8 }}>
-            📋 Not Started
+            Not Started
           </div>
           <div style={{ color: "#8b949e", fontSize: 14 }}>
             Complete KYC verification to unlock full platform features.
@@ -311,7 +311,7 @@ export function KYCStatus() {
                   color: "#238636",
                   fontSize: 13,
                 }}>
-                  <span>✓</span>
+                  <span>Verified</span>
                   <span>Verified on-chain</span>
                 </div>
                 {kycData.onChain.txHash && (
@@ -341,7 +341,7 @@ export function KYCStatus() {
                 alignItems: "center",
                 gap: 8,
               }}>
-                <span>⚠️</span>
+                <span>Warning:</span>
                 <span>Pending sync: {kycData.onChain.error}</span>
               </div>
             ) : (
@@ -357,7 +357,7 @@ export function KYCStatus() {
                   alignItems: "center",
                   gap: 8,
                 }}>
-                  <span>⏳</span>
+                  <span>Pending:</span>
                   <span>Awaiting blockchain sync...</span>
                 </div>
                 <button

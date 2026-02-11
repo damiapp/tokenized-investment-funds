@@ -29,11 +29,11 @@ export function UserProfile() {
   const getKycStatusText = (status: string) => {
     switch (status) {
       case "approved":
-        return "✅ Approved";
+        return "Approved";
       case "rejected":
-        return "❌ Rejected";
+        return "Rejected";
       default:
-        return "⏳ Pending";
+        return "Pending";
     }
   };
 
@@ -103,7 +103,7 @@ export function UserProfile() {
                     alignItems: "center",
                     gap: 4
                   }}>
-                    ⚠️ Connected wallet does not match registered wallet
+                    Warning: Connected wallet does not match registered wallet
                   </div>
                 )}
               </div>

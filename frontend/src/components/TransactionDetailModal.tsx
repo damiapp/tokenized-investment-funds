@@ -176,7 +176,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
                   }}
                   title="Copy ID"
                 >
-                  📋
+                  Copy
                 </button>
               </div>
             </div>
@@ -256,7 +256,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
                           padding: 4,
                         }}
                       >
-                        📋
+                        Copy
                       </button>
                     </div>
                   </div>
@@ -381,7 +381,7 @@ export function TransactionDetailModal({ transactionId, onClose }: TransactionDe
                       padding: 4,
                     }}
                   >
-                    📋
+                    Copy
                   </button>
                 </div>
               </div>

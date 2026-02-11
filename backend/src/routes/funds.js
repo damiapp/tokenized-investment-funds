@@ -9,12 +9,6 @@ router.use(authMiddleware);
 router.post("/", fundController.create);
 router.get("/", fundController.getAll);
 router.get("/my-funds", fundController.getMyFunds);
-router.get("/discover", fundController.discoverFunds);
-router.get("/on-chain/:fundId", fundController.getOnChainFund);
-router.get("/by-gp/:gpAddress", fundController.getFundsByGP);
-
-router.get("/:fundId/investors", fundController.getFundInvestors);
-router.get("/:fundId/analytics", fundController.getFundAnalytics);
 
 router.get("/:id", fundController.getById);
 router.put("/:id", fundController.update);
