@@ -129,7 +129,7 @@ export function LandingPage() {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.borderColor = "#30363d";
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🔐</div>
             <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
               Secure & Compliant
             </h3>
@@ -155,7 +155,7 @@ export function LandingPage() {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.borderColor = "#30363d";
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>💎</div>
             <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
               Tokenized Ownership
             </h3>
@@ -181,7 +181,7 @@ export function LandingPage() {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.borderColor = "#30363d";
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🌐</div>
             <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
               Transparent & Decentralized
             </h3>
@@ -207,7 +207,7 @@ export function LandingPage() {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.borderColor = "#30363d";
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
             <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
               Portfolio Management
             </h3>
@@ -233,7 +233,7 @@ export function LandingPage() {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.borderColor = "#30363d";
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>⚡</div>
             <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
               Fast & Efficient
             </h3>
@@ -259,7 +259,7 @@ export function LandingPage() {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.borderColor = "#30363d";
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🤝</div>
             <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
               For GPs & LPs
             </h3>

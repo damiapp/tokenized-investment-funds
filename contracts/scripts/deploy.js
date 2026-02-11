@@ -14,21 +14,21 @@ async function main() {
   const IdentityRegistry = await hre.ethers.getContractFactory("IdentityRegistry");
   const identityRegistry = await IdentityRegistry.deploy();
   await identityRegistry.deployed();
-  console.log("IdentityRegistry deployed to:", identityRegistry.address);
+  console.log("✓ IdentityRegistry deployed to:", identityRegistry.address);
 
   // Deploy TrustedIssuersRegistry
   console.log("\n[2/5] Deploying TrustedIssuersRegistry...");
   const TrustedIssuersRegistry = await hre.ethers.getContractFactory("TrustedIssuersRegistry");
   const trustedIssuersRegistry = await TrustedIssuersRegistry.deploy();
   await trustedIssuersRegistry.deployed();
-  console.log("TrustedIssuersRegistry deployed to:", trustedIssuersRegistry.address);
+  console.log("✓ TrustedIssuersRegistry deployed to:", trustedIssuersRegistry.address);
 
   // Deploy ComplianceModule
   console.log("\n[3/5] Deploying ComplianceModule...");
   const ComplianceModule = await hre.ethers.getContractFactory("ComplianceModule");
   const complianceModule = await ComplianceModule.deploy(identityRegistry.address);
   await complianceModule.deployed();
-  console.log("ComplianceModule deployed to:", complianceModule.address);
+  console.log("✓ ComplianceModule deployed to:", complianceModule.address);
 
   // Deploy FundFactory
   console.log("\n[4/6] Deploying FundFactory...");
@@ -38,21 +38,21 @@ async function main() {
     complianceModule.address
   );
   await fundFactory.deployed();
-  console.log("FundFactory deployed to:", fundFactory.address);
+  console.log("✓ FundFactory deployed to:", fundFactory.address);
 
   // Deploy InvestmentContract
   console.log("\n[5/7] Deploying InvestmentContract...");
   const InvestmentContract = await hre.ethers.getContractFactory("InvestmentContract");
   const investmentContract = await InvestmentContract.deploy(identityRegistry.address);
   await investmentContract.deployed();
-  console.log("InvestmentContract deployed to:", investmentContract.address);
+  console.log("✓ InvestmentContract deployed to:", investmentContract.address);
 
   // Deploy PortfolioCompanyRegistry
   console.log("\n[6/7] Deploying PortfolioCompanyRegistry...");
   const PortfolioCompanyRegistry = await hre.ethers.getContractFactory("PortfolioCompanyRegistry");
   const portfolioRegistry = await PortfolioCompanyRegistry.deploy();
   await portfolioRegistry.deployed();
-  console.log("PortfolioCompanyRegistry deployed to:", portfolioRegistry.address);
+  console.log("✓ PortfolioCompanyRegistry deployed to:", portfolioRegistry.address);
 
   // Deploy sample FundTokenERC3643 (for demo purposes)
   console.log("\n[7/7] Deploying Demo FundTokenERC3643...");
@@ -64,7 +64,7 @@ async function main() {
     complianceModule.address
   );
   await fundToken.deployed();
-  console.log("Demo FundTokenERC3643 deployed to:", fundToken.address);
+  console.log("✓ Demo FundTokenERC3643 deployed to:", fundToken.address);
 
   // Initial configuration
   console.log("\n=== Initial Configuration ===");
@@ -72,33 +72,33 @@ async function main() {
   console.log("Registering deployer identity...");
   const tx1 = await identityRegistry.registerIdentity(deployer.address, 840);
   await tx1.wait();
-  console.log("Deployer registered (Country: USA - 840)");
+  console.log("✓ Deployer registered (Country: USA - 840)");
 
   console.log("Adding KYC claim to deployer...");
   const CLAIM_KYC_VERIFIED = 2;
   const tx2 = await identityRegistry.addClaim(deployer.address, CLAIM_KYC_VERIFIED);
   await tx2.wait();
-  console.log("KYC claim added");
+  console.log("✓ KYC claim added");
 
   console.log("Enabling compliance restrictions...");
   const tx3 = await complianceModule.enableRestrictions(fundToken.address);
   await tx3.wait();
-  console.log("Compliance enabled");
+  console.log("✓ Compliance enabled");
 
   console.log("Setting max holders to 100...");
   const tx4 = await complianceModule.setMaxHolders(fundToken.address, 100);
   await tx4.wait();
-  console.log("Max holders configured");
+  console.log("✓ Max holders configured");
 
   console.log("Allowing USA (840)...");
   const tx5 = await complianceModule.allowCountry(fundToken.address, 840);
   await tx5.wait();
-  console.log("USA allowed");
+  console.log("✓ USA allowed");
 
   console.log("Approving deployer as GP in FundFactory...");
   const tx6 = await fundFactory.approveGP(deployer.address);
   await tx6.wait();
-  console.log("Deployer approved as GP");
+  console.log("✓ Deployer approved as GP");
 
   // Save deployment info
   const deploymentInfo = {
@@ -142,7 +142,7 @@ async function main() {
 
   const deploymentPath = path.join(deploymentsDir, `${hre.network.name}.json`);
   fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
-  console.log(`\nDeployment info saved to: ${deploymentPath}`);
+  console.log(`\n✓ Deployment info saved to: ${deploymentPath}`);
 
   // Copy ABIs to shared location for backend/frontend
   const sharedDir = path.join(__dirname, "../../shared/contracts");
@@ -197,7 +197,7 @@ async function main() {
 
   const sharedPath = path.join(sharedDir, "deployed.json");
   fs.writeFileSync(sharedPath, JSON.stringify(sharedContracts, null, 2));
-  console.log(`Shared contract info saved to: ${sharedPath}`);
+  console.log(`✓ Shared contract info saved to: ${sharedPath}`);
 
   console.log("\n=== Deployment Complete ===");
   console.log("IdentityRegistry:        ", identityRegistry.address);

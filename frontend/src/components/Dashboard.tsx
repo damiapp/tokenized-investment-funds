@@ -60,28 +60,28 @@ export function Dashboard() {
       title: "Platform Launch",
       date: "January 2026",
       description: "Tokenize Invest is now live! Start exploring tokenized investment opportunities with blockchain-powered security and transparency.",
-      icon: ""
+      icon: "🚀"
     },
     {
       id: 2,
       title: "Multi-Fund Token Support",
       date: "January 2026",
       description: "Each fund now has its own dedicated ERC-20 token contract. Track your portfolio across multiple funds with ease.",
-      icon: ""
+      icon: "💎"
     },
     {
       id: 3,
       title: "Enhanced KYC Verification",
       date: "January 2026",
       description: "On-chain KYC enforcement ensures only verified investors can participate. Your security is our priority.",
-      icon: ""
+      icon: "🔐"
     },
     {
       id: 4,
       title: "Polygon Network Support",
       date: "Coming Soon",
       description: "Deploy to Polygon Amoy testnet and mainnet for lower gas fees and faster transactions.",
-      icon: ""
+      icon: "⚡"
     }
   ];
 
@@ -227,7 +227,7 @@ export function Dashboard() {
             marginBottom: 20,
             fontWeight: 700
           }}>
-            Quick Stats
+            📊 Quick Stats
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{

@@ -529,7 +529,7 @@ const InvestorsDashboard: React.FC = () => {
                                 whiteSpace: 'nowrap'
                               }}
                             >
-                              Confirm & Mint Tokens
+                              ✓ Confirm & Mint Tokens
                             </button>
                             <button
                               onClick={() => handleCancelInvestment(inv.investmentId)}

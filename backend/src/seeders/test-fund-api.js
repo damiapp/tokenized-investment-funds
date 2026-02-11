@@ -10,7 +10,7 @@ async function testFundAPI() {
     });
     
     const token = loginResponse.data.data.token;
-    console.log("Login successful\n");
+    console.log("✅ Login successful\n");
     
     // Get Sustainable Energy Fund
     const { Fund } = require("../models");
@@ -21,21 +21,21 @@ async function testFundAPI() {
       headers: { Authorization: `Bearer ${token}` },
     });
     
-    console.log("\nFund Response:");
+    console.log("\n📊 Fund Response:");
     console.log("Name:", fundResponse.data.data.fund.name);
     console.log("onChainFundId:", fundResponse.data.data.fund.onChainFundId);
     console.log("investmentContractFundId:", fundResponse.data.data.fund.investmentContractFundId);
     console.log("contractAddress:", fundResponse.data.data.fund.contractAddress);
     
     if (fundResponse.data.data.fund.investmentContractFundId) {
-      console.log("\nFund has investmentContractFundId, portfolio should load");
+      console.log("\n✅ Fund has investmentContractFundId, portfolio should load");
     } else {
-      console.log("\nFund missing investmentContractFundId!");
+      console.log("\n❌ Fund missing investmentContractFundId!");
     }
     
     process.exit(0);
   } catch (error) {
-    console.error("Error:", error.response?.data || error.message);
+    console.error("❌ Error:", error.response?.data || error.message);
     process.exit(1);
   }
 }

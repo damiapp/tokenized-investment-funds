@@ -17,7 +17,7 @@ async function cleanupNonFactoryFunds() {
     console.log(`Funds deployed via FundFactory: ${factoryFunds.length}\n`);
 
     if (nonFactoryFunds.length === 0) {
-      console.log("No non-factory funds to clean up!");
+      console.log("✓ No non-factory funds to clean up!");
       return;
     }
 
@@ -30,11 +30,11 @@ async function cleanupNonFactoryFunds() {
       // Check for investments
       const investments = await Investment.findAll({ where: { fundId: fund.id } });
       if (investments.length > 0) {
-        console.log(`    WARNING: Has ${investments.length} investment(s)`);
+        console.log(`    ⚠️  WARNING: Has ${investments.length} investment(s)`);
       }
     }
 
-    console.log("\nThis will DELETE these funds from the database!");
+    console.log("\n⚠️  This will DELETE these funds from the database!");
     console.log("To proceed, run this script with --confirm flag\n");
 
     // Check for --confirm flag
@@ -59,10 +59,10 @@ async function cleanupNonFactoryFunds() {
       
       // Then delete the fund
       await fund.destroy();
-      console.log(`  Deleted fund: ${fund.name}`);
+      console.log(`  ✓ Deleted fund: ${fund.name}`);
     }
 
-    console.log("\nCleanup complete!");
+    console.log("\n✅ Cleanup complete!");
     console.log(`Deleted ${nonFactoryFunds.length} non-factory fund(s)`);
     console.log(`Remaining ${factoryFunds.length} factory-deployed fund(s)`);
 

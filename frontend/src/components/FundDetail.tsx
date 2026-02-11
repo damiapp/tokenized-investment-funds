@@ -491,7 +491,7 @@ export function FundDetail() {
                             cursor: "pointer",
                           }}
                         >
-                          Confirm & Mint Tokens
+                          ✓ Confirm & Mint Tokens
                         </button>
                         <button
                           onClick={async (e) => {
@@ -785,7 +785,7 @@ export function FundDetail() {
                         fontSize: 14,
                       }}
                     >
-                      This fund has not been deployed to the blockchain yet. Investments will be available once the GP deploys the fund.
+                      ⚠️ This fund has not been deployed to the blockchain yet. Investments will be available once the GP deploys the fund.
                     </div>
                   )}
                   {investError && (
@@ -867,7 +867,7 @@ export function FundDetail() {
                         fontSize: 14,
                       }}
                     >
-                      Please connect your wallet to invest
+                      ⚠️ Please connect your wallet to invest
                     </div>
                   )}
                   {address && user?.walletAddress && address.toLowerCase() !== user.walletAddress.toLowerCase() && (
@@ -882,7 +882,7 @@ export function FundDetail() {
                         fontSize: 14,
                       }}
                     >
-                      Connected wallet does not match your registered wallet
+                      ⚠️ Connected wallet does not match your registered wallet
                     </div>
                   )}
                   {investAmount && parseFloat(investAmount) < parseFloat(fund.minimumInvestment) && (
@@ -897,7 +897,7 @@ export function FundDetail() {
                         fontSize: 14,
                       }}
                     >
-                      Investment amount must be at least {formatCurrency(fund.minimumInvestment)}
+                      ❌ Investment amount must be at least {formatCurrency(fund.minimumInvestment)}
                     </div>
                   )}
                   {investAmount && parseFloat(investAmount) > remainingCapacity && (
@@ -912,7 +912,7 @@ export function FundDetail() {
                         fontSize: 14,
                       }}
                     >
-                      Investment amount exceeds remaining capacity of {formatCurrency(remainingCapacity)}
+                      ❌ Investment amount exceeds remaining capacity of {formatCurrency(remainingCapacity)}
                     </div>
                   )}
                   <button

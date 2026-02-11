@@ -195,7 +195,7 @@ export function CreateFundForm({ onFundCreated }: CreateFundFormProps) {
             color: "#ffffff",
             marginBottom: 20,
           }}>
-            Fund created successfully!
+            ✅ Fund created successfully!
           </div>
         )}
 

@@ -182,35 +182,17 @@ npm start
 
 
 
-### 7. Seed Demo Data
+### 7. Demo Users
 
 
 
-Run the seed script to populate demo users, funds, and investments:
-
-```bash
-
-cd backend
-
-node src/seeders/seed.js
-
-```
-
-
-
-This creates the following demo accounts:
+The platform seeds demo users on first run:
 
 - **GP (Fund Manager):** `gp@demo.com` / `password123`
 
-- **LP1 (Investor):** `lp1@demo.com` / `password123`
+- **LP (Investor):** `lp@demo.com` / `password123`
 
 - **LP2 (Investor):** `lp2@demo.com` / `password123`
-
-- **LP3 (Investor, Pending KYC):** `lp3@demo.com` / `password123`
-
-
-
-See `backend/src/seeders/README.md` for full details on seeded data.
 
 
 
@@ -220,21 +202,17 @@ See `backend/src/seeders/README.md` for full details on seeded data.
 
 - **Authentication & Authorization:** JWT-based auth with role-based access (GP/LP)
 
-- **KYC Verification:** Document upload with on-chain identity enforcement
+- **KYC Verification:** Document upload with on-chain enforcement via smart contracts
 
-- **Fund Management:** Create, deploy, and manage tokenized investment funds
+- **Fund Management:** Create, browse, and manage investment funds
 
 - **Investment Flow:** Submit investments with wallet validation and token minting
 
-- **Tokenization:** ERC-3643 security tokens representing fund ownership
+- **Tokenization:** ERC-20 tokens representing fund ownership
 
-- **Portfolio Tracking:** View investments, on-chain token balances, and portfolio companies
+- **Portfolio Tracking:** View investments and on-chain token balances
 
-- **Multi-Fund Support:** Each fund has its own ERC-20 token contract
-
-- **Transaction History:** Full transaction ledger with filtering and CSV export
-
-- **Blockchain Events:** Real-time event listener syncs on-chain state to database
+- **Multi-Fund Support:** Each fund has its own token contract
 
 
 
@@ -268,49 +246,13 @@ npm run test:coverage
 
 ```
 
-├── contracts/          # Solidity smart contracts (ERC-3643)
+├── contracts/          # Solidity smart contracts
 
-│   ├── contracts/      # Solidity source files
+├── backend/           # Express API server
 
-│   ├── scripts/        # Deployment scripts
+├── frontend/          # React TypeScript app
 
-│   ├── test/           # Contract tests
-
-│   └── deployments/    # Deployment artifacts
-
-├── backend/            # Express API server
-
-│   ├── src/
-
-│   │   ├── controllers/  # Route handlers
-
-│   │   ├── models/       # Sequelize models
-
-│   │   ├── routes/       # API route definitions
-
-│   │   ├── services/     # Business logic & blockchain interaction
-
-│   │   ├── middleware/    # Auth & validation middleware
-
-│   │   └── seeders/      # Database seed scripts
-
-│   └── test/           # Backend test suite
-
-├── frontend/           # React TypeScript app
-
-│   └── src/
-
-│       ├── components/   # React components
-
-│       ├── api/          # API client wrappers
-
-│       ├── contexts/     # React context providers
-
-│       └── styles/       # CSS and theme files
-
-├── shared/             # Shared contract ABIs and addresses
-
-└── docs/               # Documentation and thesis materials
+├── shared/            # Shared contract artifacts
 
 ```
 

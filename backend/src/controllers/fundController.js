@@ -1,4 +1,5 @@
 const { Fund, User, Investment } = require("../models");
+const { Op } = require("sequelize");
 const contractService = require("../services/contractService");
 
 const fundController = {
@@ -326,7 +327,7 @@ const fundController = {
         if (!isApproved) {
           console.log(`Auto-approving GP ${gp.walletAddress} in FundFactory...`);
           await contractService.approveGP(gp.walletAddress);
-          console.log(`GP auto-approved in FundFactory`);
+          console.log(`✓ GP auto-approved in FundFactory`);
         }
       } catch (error) {
         console.warn("Could not auto-approve GP:", error.message);
@@ -417,6 +418,262 @@ const fundController = {
     }
   },
 
+  async discoverFunds(req, res) {
+    try {
+      const { offset = 0, limit = 10 } = req.query;
+
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return res.status(503).json({
+          error: {
+            code: "SERVICE_UNAVAILABLE",
+            message: "Contract service not initialized",
+          },
+        });
+      }
+
+      const funds = await contractService.getActiveFunds(
+        parseInt(offset),
+        parseInt(limit)
+      );
+
+      const totalCount = await contractService.getFundCount();
+
+      res.status(200).json({
+        data: {
+          funds,
+          count: funds.length,
+          totalCount,
+          offset: parseInt(offset),
+          limit: parseInt(limit),
+        },
+      });
+    } catch (error) {
+      console.error("Discover funds error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to discover funds",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  async getOnChainFund(req, res) {
+    try {
+      const { fundId } = req.params;
+
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return res.status(503).json({
+          error: {
+            code: "SERVICE_UNAVAILABLE",
+            message: "Contract service not initialized",
+          },
+        });
+      }
+
+      const fund = await contractService.getOnChainFund(parseInt(fundId));
+
+      res.status(200).json({
+        data: { fund },
+      });
+    } catch (error) {
+      console.error("Get on-chain fund error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get on-chain fund",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  async getFundsByGP(req, res) {
+    try {
+      const { gpAddress } = req.params;
+
+      if (!contractService.isInitialized()) {
+        await contractService.initialize();
+      }
+
+      if (!contractService.isInitialized()) {
+        return res.status(503).json({
+          error: {
+            code: "SERVICE_UNAVAILABLE",
+            message: "Contract service not initialized",
+          },
+        });
+      }
+
+      const fundIds = await contractService.getFundsByGP(gpAddress);
+
+      const funds = await Promise.all(
+        fundIds.map(id => contractService.getOnChainFund(id))
+      );
+
+      res.status(200).json({
+        data: {
+          funds,
+          count: funds.length,
+        },
+      });
+    } catch (error) {
+      console.error("Get funds by GP error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get funds by GP",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  async getFundInvestors(req, res) {
+    try {
+      const { fundId } = req.params;
+      const userId = req.user.id;
+
+      const fund = await Fund.findByPk(fundId);
+      if (!fund) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Fund not found",
+          },
+        });
+      }
+
+      if (fund.gpId !== userId) {
+        return res.status(403).json({
+          error: {
+            code: "FORBIDDEN",
+            message: "Only the fund's GP can view investors",
+          },
+        });
+      }
+
+      const investments = await Investment.findAll({
+        where: { fundId },
+        include: [
+          {
+            model: User,
+            as: "limitedPartner",
+            attributes: ["id", "email", "walletAddress", "createdAt"],
+          },
+          {
+            model: Fund,
+            as: "fund",
+            attributes: ["id", "name"],
+          },
+        ],
+        order: [["investedAt", "DESC"]],
+      });
+
+      const investors = investments.map(inv => ({
+        investmentId: inv.id,
+        investor: inv.limitedPartner,
+        fund: inv.fund ? { id: inv.fund.id, name: inv.fund.name } : null,
+        amount: inv.amount,
+        tokensIssued: inv.tokensIssued,
+        status: inv.status,
+        investedAt: inv.investedAt,
+        onChainInvestmentId: inv.onChainInvestmentId,
+        onChainTxHash: inv.onChainTxHash,
+      }));
+
+      res.status(200).json({
+        data: {
+          fundId,
+          fundName: fund.name,
+          investors,
+          count: investors.length,
+          totalRaised: fund.raisedAmount,
+        },
+      });
+    } catch (error) {
+      console.error("Get fund investors error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get fund investors",
+          details: error.message,
+        },
+      });
+    }
+  },
+
+  async getFundAnalytics(req, res) {
+    try {
+      const { fundId } = req.params;
+      const userId = req.user.id;
+
+      const fund = await Fund.findByPk(fundId);
+      if (!fund) {
+        return res.status(404).json({
+          error: {
+            code: "NOT_FOUND",
+            message: "Fund not found",
+          },
+        });
+      }
+
+      if (fund.gpId !== userId) {
+        return res.status(403).json({
+          error: {
+            code: "FORBIDDEN",
+            message: "Only the fund's GP can view analytics",
+          },
+        });
+      }
+
+      const investments = await Investment.findAll({
+        where: { fundId },
+      });
+
+      const confirmedInvestments = investments.filter(inv => inv.status === "confirmed");
+      const pendingInvestments = investments.filter(inv => inv.status === "pending");
+
+      const analytics = {
+        fundId,
+        fundName: fund.name,
+        targetAmount: fund.targetAmount,
+        raisedAmount: fund.raisedAmount,
+        percentageRaised: (parseFloat(fund.raisedAmount) / parseFloat(fund.targetAmount)) * 100,
+        totalInvestors: new Set(investments.map(inv => inv.lpId)).size,
+        totalInvestments: investments.length,
+        confirmedInvestments: confirmedInvestments.length,
+        pendingInvestments: pendingInvestments.length,
+        averageInvestment: investments.length > 0 
+          ? investments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) / investments.length 
+          : 0,
+        minimumInvestment: fund.minimumInvestment,
+        status: fund.status,
+      };
+
+      res.status(200).json({
+        data: { analytics },
+      });
+    } catch (error) {
+      console.error("Get fund analytics error:", error);
+      res.status(500).json({
+        error: {
+          code: "INTERNAL",
+          message: "Failed to get fund analytics",
+          details: error.message,
+        },
+      });
+    }
+  },
 };
 
 module.exports = fundController;

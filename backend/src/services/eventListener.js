@@ -39,7 +39,7 @@ class EventListener {
       this.listenToInvestmentContractEvents();
 
       this.listening = true;
-      console.log("Event listener started successfully");
+      console.log("✓ Event listener started successfully");
     } catch (error) {
       console.error("Failed to initialize event listener:", error);
     }
@@ -87,7 +87,7 @@ class EventListener {
       }
     });
 
-    console.log("  Listening to IdentityRegistry events");
+    console.log("  ✓ Listening to IdentityRegistry events");
   }
 
   listenToFundFactoryEvents() {
@@ -103,7 +103,7 @@ class EventListener {
 
     });
 
-    console.log("  Listening to FundFactory events");
+    console.log("  ✓ Listening to FundFactory events");
   }
 
   listenToInvestmentContractEvents() {
@@ -143,7 +143,7 @@ class EventListener {
       console.log("  Block:", event.blockNumber);
     });
 
-    console.log("  Listening to InvestmentContract events");
+    console.log("  ✓ Listening to InvestmentContract events");
   }
 
   async handleIdentityRegistered(walletAddress, countryCode, txHash) {
@@ -152,7 +152,7 @@ class EventListener {
     });
 
     if (!user) {
-      console.log("  No user found with wallet:", walletAddress);
+      console.log("  ⚠️  No user found with wallet:", walletAddress);
       return;
     }
 
@@ -176,7 +176,7 @@ class EventListener {
       });
     }
 
-    console.log("  Database updated for user:", user.email);
+    console.log("  ✓ Database updated for user:", user.email);
   }
 
   async handleClaimAdded(walletAddress, claimTopic, txHash) {
@@ -187,7 +187,7 @@ class EventListener {
     });
 
     if (!user) {
-      console.log("  No user found with wallet:", walletAddress);
+      console.log("  ⚠️  No user found with wallet:", walletAddress);
       return;
     }
 
@@ -204,7 +204,7 @@ class EventListener {
           onChainTxHash: txHash,
           onChainSyncedAt: new Date(),
         });
-        console.log("  KYC status updated to approved");
+        console.log("  ✓ KYC status updated to approved");
       }
     }
   }
@@ -217,7 +217,7 @@ class EventListener {
     });
 
     if (!user) {
-      console.log("  No user found with wallet:", walletAddress);
+      console.log("  ⚠️  No user found with wallet:", walletAddress);
       return;
     }
 
@@ -232,7 +232,7 @@ class EventListener {
           status: "rejected",
           onChainSyncedAt: new Date(),
         });
-        console.log("  KYC status updated to rejected");
+        console.log("  ✓ KYC status updated to rejected");
       }
     }
   }
@@ -258,7 +258,7 @@ class EventListener {
     }
 
     this.listening = false;
-    console.log("Event listener stopped");
+    console.log("✓ Event listener stopped");
   }
 
   isListening() {
