@@ -2,7 +2,7 @@
 
 This directory contains all test files and utilities for the backend API.
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 test/
@@ -11,7 +11,8 @@ test/
 │   ├── sequelize-connection.js # Test Sequelize ORM connection
 │   └── debug-env.js            # Debug environment variables
 ├── debug/              # Debug utilities and troubleshooting
-│   └── auth-loading.js         # Test auth module loading
+│   ├── auth-loading.js         # Test auth module loading
+│   └── wallet-address.js       # Test wallet address utilities
 ├── api/                # API endpoint tests
 │   ├── auth-endpoints.js       # Node.js auth endpoint tests
 │   ├── auth-endpoints.ps1      # PowerShell auth endpoint tests
@@ -19,6 +20,9 @@ test/
 ├── unit/               # Jest unit tests
 │   ├── setup.js               # Test setup and database configuration
 │   ├── auth.test.js            # Authentication endpoint tests
+│   ├── funds.test.js           # Fund management endpoint tests
+│   ├── investments.test.js     # Investment endpoint tests
+│   ├── kyc.test.js             # KYC verification endpoint tests
 │   ├── models.test.js          # Database model tests
 │   ├── services.test.js        # Service function tests
 │   └── helpers.js              # Test utilities and helpers
@@ -26,7 +30,7 @@ test/
     └── run-tests.js            # Test runner script
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Database Tests
 ```bash
@@ -69,21 +73,24 @@ npm run test:coverage
 node test/scripts/run-tests.js [all|watch|coverage|auth|models|services]
 ```
 
-## 📋 Test Categories
+## Test Categories
 
-### ✅ Working Tests
+### Working Tests
 - Database connection (PostgreSQL + Sequelize)
 - Authentication endpoints (register, login, /me)
 - JWT token generation and validation
 - User registration and KYC status creation
+- Fund CRUD operations
+- Investment creation and status updates
+- KYC submission and approval flow
 
-### 🧪 Test Coverage
-- **Unit Tests**: Model validations, service functions
+### Test Coverage
+- **Unit Tests**: Model validations, service functions, funds, investments, KYC
 - **Integration Tests**: Auth endpoints, database operations
 - **API Tests**: Full authentication flow
 - **Database Tests**: Connection and schema validation
 
-## 🔧 Environment Setup
+## Environment Setup
 
 Make sure your `.env` file is configured:
 ```env
@@ -92,7 +99,7 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 PORT=3001
 ```
 
-## 📝 Notes
+## Notes
 
 - Database tests use the actual PostgreSQL database
 - API tests require the server to be running on `localhost:3001`
