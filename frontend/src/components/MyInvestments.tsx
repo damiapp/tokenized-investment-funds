@@ -70,6 +70,27 @@ export function MyInvestments() {
     }).format(num);
   };
 
+  const addTokenToMetaMask = async (token: TokenBalance) => {
+    const ethereum = (window as any).ethereum;
+    if (!ethereum || !token.address) return;
+
+    try {
+      await ethereum.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC20",
+          options: {
+            address: token.address,
+            symbol: token.symbol,
+            decimals: 18,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Failed to add token to MetaMask:", error);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -171,6 +192,31 @@ export function MyInvestments() {
                         <div style={{ color: "#f0883e", fontSize: 12 }}>⚠️ Error</div>
                       ) : (
                         <div style={{ color: "#8b949e", fontSize: 14 }}>--</div>
+                      )}
+                      {token.address && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addTokenToMetaMask(token);
+                          }}
+                          title="Add token to MetaMask"
+                          style={{
+                            marginTop: 8,
+                            backgroundColor: "#f6851b22",
+                            border: "1px solid #f6851b",
+                            borderRadius: 4,
+                            color: "#f6851b",
+                            padding: "4px 8px",
+                            fontSize: 11,
+                            cursor: "pointer",
+                            width: "100%",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f6851b44"}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f6851b22"}
+                        >
+                          + Add to MetaMask
+                        </button>
                       )}
                     </div>
                   ))}

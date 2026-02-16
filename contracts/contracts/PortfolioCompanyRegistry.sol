@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  */
 contract PortfolioCompanyRegistry is AccessControl {
     bytes32 public constant FUND_MANAGER_ROLE = keccak256("FUND_MANAGER_ROLE");
-    bytes32 public constant GP_ROLE = keccak256("GP_ROLE");
 
     struct Company {
         string name;

@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export function LandingPage() {
@@ -7,8 +7,7 @@ export function LandingPage() {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    navigate("/funds");
-    return null;
+    return <Navigate to="/funds" replace />;
   }
 
   return (
