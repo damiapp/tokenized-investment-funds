@@ -164,6 +164,12 @@ export const investmentsApi = {
     });
   },
 
+  async mint(id: string): Promise<{ data: { investment: Investment; tokenMint: any; message: string } }> {
+    return apiClient.makeRequest(`/investments/${id}/mint`, {
+      method: "POST",
+    });
+  },
+
   async getPortfolio(): Promise<{
     data: {
       investments: Investment[];

@@ -438,7 +438,7 @@ export function FundDetail() {
                     </div>
                     
                     {/* Token info for confirmed investments */}
-                    {inv.status === "confirmed" && inv.tokensIssued && (
+                    {inv.status === "confirmed" && (
                       <div style={{
                         marginTop: 8,
                         paddingTop: 8,
@@ -446,10 +446,11 @@ export function FundDetail() {
                         display: "flex",
                         gap: 16,
                         fontSize: 12,
+                        alignItems: "center",
                       }}>
                         <div>
                           <span style={{ color: "#8b949e" }}>Tokens: </span>
-                          <span style={{ color: "#58a6ff" }}>{inv.tokensIssued}</span>
+                          <span style={{ color: "#58a6ff" }}>{inv.tokensIssued || "0"}</span>
                         </div>
                         {inv.transactionHash && (
                           <div>
@@ -458,6 +459,31 @@ export function FundDetail() {
                               {inv.transactionHash.slice(0, 10)}...
                             </code>
                           </div>
+                        )}
+                        {(!inv.tokensIssued || parseFloat(inv.tokensIssued) === 0) && user?.role === "GP" && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await investmentsApi.mint(inv.id);
+                                fetchFund();
+                              } catch (err) {
+                                setError(err instanceof Error ? err.message : "Failed to mint tokens");
+                              }
+                            }}
+                            style={{
+                              backgroundColor: "#58a6ff22",
+                              border: "1px solid #58a6ff",
+                              borderRadius: 6,
+                              color: "#58a6ff",
+                              padding: "4px 10px",
+                              fontSize: 11,
+                              cursor: "pointer",
+                              marginLeft: "auto",
+                            }}
+                          >
+                            Re-mint Tokens
+                          </button>
                         )}
                       </div>
                     )}

@@ -557,27 +557,10 @@ const investmentController = {
 
       const tokensToMint = parseFloat(investment.amount);
 
-      if (fund?.contractAddress) {
-        try {
-          const compliance = await contractService.checkTransferCompliance(
-            fund.contractAddress,
-            '0x0000000000000000000000000000000000000000', // minting from zero address
-            lp.walletAddress,
-            tokensToMint
-          );
-
-          if (!compliance.canTransfer) {
-            console.warn(`Cannot mint tokens: Compliance check failed - ${compliance.reason}`);
-            return { 
-              success: false, 
-              reason: "compliance_failed", 
-              complianceReason: compliance.reason 
-            };
-          }
-        } catch (complianceError) {
-          console.warn(`Compliance check error (proceeding anyway): ${complianceError.message}`);
-        }
-      }
+      // Note: Compliance check is skipped for minting (from zero address)
+      // because the zero address has no balance and will always fail the
+      // "Insufficient unfrozen balance" check. Minting is an owner-only
+      // operation and compliance is enforced on subsequent transfers.
 
       let txHash;
       

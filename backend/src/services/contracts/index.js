@@ -245,8 +245,8 @@ class ContractService {
     }
 
     const token = new ethers.Contract(tokenAddress, this.fundToken.interface, this.signer);
-    const canTransfer = await token.canTransfer(from, to, ethers.utils.parseEther(amount.toString()));
-    return canTransfer;
+    const result = await token.canTransfer(from, to, ethers.utils.parseEther(amount.toString()));
+    return { canTransfer: result[0], reason: result[1] };
   }
 }
 
